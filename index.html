@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Grand Strand Luxury Communities</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{--cr:#FAF7F2;--wm:#F5F0E8;--sa:#E8DFD0;--ln:#D6C9B6;--tp:#B8A99A;--br:#8B7B6B;--dk:#5C4F42;--dp:#3A3028;--ch:#2A231C;--gd:#C9A96E}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Lato',sans-serif;background:var(--cr);color:var(--dp)}
+
+/* ── HEADER ── */
+#hdr{
+  background:linear-gradient(135deg,var(--ch),#1f1a14 50%,var(--dk));
+  padding:14px 20px 12px;text-align:center;position:relative;z-index:1000;
+  border-bottom:1px solid rgba(201,169,110,.3)
+}
+#hdr::after{content:'';position:absolute;bottom:0;left:25%;right:25%;height:1px;background:linear-gradient(90deg,transparent,var(--gd),transparent)}
+#hdr h1{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:500;color:var(--cr);letter-spacing:4px;text-transform:uppercase}
+#hdr .s1{font-size:9px;color:var(--tp);letter-spacing:2px;text-transform:uppercase;font-weight:300;margin-top:4px}
+
+/* ── LAYOUT ── */
+#app{display:flex;flex-direction:column;height:calc(100vh - 60px);position:relative}
+
+/* Map always visible */
+#m{flex:1;z-index:1}
+
+/* ── MOBILE BOTTOM SHEET ── */
+#sheet{
+  position:absolute;bottom:0;left:0;right:0;z-index:1000;
+  background:var(--wm);border-radius:16px 16px 0 0;
+  box-shadow:0 -4px 24px rgba(58,48,40,.12);
+  transition:transform .35s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+  max-height:85vh;
+  transform:translateY(calc(100% - 54px));
+}
+#sheet.peek{transform:translateY(calc(100% - 54px))}
+#sheet.half{transform:translateY(50%)}
+#sheet.full{transform:translateY(0)}
+
+/* Drag handle */
+#handle{
+  padding:10px 0 6px;text-align:center;cursor:grab;flex-shrink:0;
+  -webkit-user-select:none;user-select:none;
+}
+#handle .grip{width:36px;height:4px;border-radius:2px;background:var(--ln);margin:0 auto}
+#handle .peek-label{
+  font-size:10px;color:var(--br);letter-spacing:1.5px;text-transform:uppercase;
+  font-weight:600;margin-top:4px
+}
+
+/* Filter/result toggle tabs */
+#tabs{display:flex;border-bottom:1px solid var(--sa);flex-shrink:0;padding:0 16px}
+.tab{
+  flex:1;text-align:center;padding:8px 0;font-size:10px;letter-spacing:1.5px;
+  text-transform:uppercase;font-weight:600;color:var(--tp);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .2s
+}
+.tab.on{color:var(--dp);border-bottom-color:var(--gd)}
+
+/* Panel content */
+#panels{flex:1;overflow:hidden;position:relative}
+.panel{position:absolute;inset:0;overflow-y:auto;padding:0;display:none}
+.panel.on{display:block}
+.panel::-webkit-scrollbar{width:4px}
+.panel::-webkit-scrollbar-thumb{background:var(--ln);border-radius:4px}
+
+/* ── FILTER PANEL ── */
+#fpanel{padding:14px 16px}
+.fg{margin-bottom:14px}
+.fg-label{
+  font-size:9px;color:var(--br);text-transform:uppercase;letter-spacing:1.5px;
+  font-weight:600;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between
+}
+.fg-label .reset{font-size:8px;color:var(--gd);cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400}
+
+/* Range slider */
+.range-wrap{position:relative;height:40px;margin:0 4px}
+.range-track{position:absolute;top:16px;left:0;right:0;height:4px;background:var(--sa);border-radius:2px}
+.range-fill{position:absolute;top:16px;height:4px;background:var(--gd);border-radius:2px;pointer-events:none}
+.range-wrap input[type=range]{
+  position:absolute;top:8px;width:100%;-webkit-appearance:none;appearance:none;
+  background:none;pointer-events:none;height:24px
+}
+.range-wrap input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  background:var(--wm);border:2px solid var(--gd);cursor:pointer;
+  pointer-events:all;box-shadow:0 2px 6px rgba(0,0,0,.15)
+}
+.range-vals{display:flex;justify-content:space-between;font-size:11px;color:var(--dk);font-weight:600;margin-top:2px}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{
+  font-size:9px;padding:6px 11px;border-radius:14px;cursor:pointer;
+  text-transform:uppercase;letter-spacing:.6px;font-weight:700;
+  border:1px solid;transition:all .15s;user-select:none
+}
+.chip.on{opacity:1}.chip:not(.on){opacity:.3}
+
+.c-georgetown{background:rgba(139,115,85,.1);color:#8B7355;border-color:rgba(139,115,85,.25)}
+.c-pawleys{background:rgba(201,134,91,.1);color:#C9865B;border-color:rgba(201,134,91,.25)}
+.c-litchfield{background:rgba(94,139,139,.1);color:#5E8B8B;border-color:rgba(94,139,139,.25)}
+.c-murrells{background:rgba(139,107,139,.1);color:#8B6B8B;border-color:rgba(139,107,139,.25)}
+.c-surfside{background:rgba(123,155,107,.1);color:#7B9B6B;border-color:rgba(123,155,107,.25)}
+.c-myrtle{background:rgba(107,123,139,.1);color:#6B7B8B;border-color:rgba(107,123,139,.25)}
+.c-carolina{background:rgba(107,139,123,.1);color:#6B8B7B;border-color:rgba(107,139,123,.25)}
+.c-nmb{background:rgba(155,123,91,.1);color:#9B7B5B;border-color:rgba(155,123,91,.25)}
+.c-lr{background:rgba(123,139,107,.1);color:#7B8B6B;border-color:rgba(123,139,107,.25)}
+
+.a-gated{background:rgba(139,107,139,.08);color:#8B6B8B;border-color:rgba(139,107,139,.2)}
+.a-golf{background:rgba(107,139,94,.08);color:#5E7B4B;border-color:rgba(107,139,94,.2)}
+.a-ocean{background:rgba(94,139,139,.08);color:#4E7B7B;border-color:rgba(94,139,139,.2)}
+.a-estate{background:rgba(160,130,80,.08);color:#8B7040;border-color:rgba(160,130,80,.2)}
+.a-marina{background:rgba(78,107,123,.08);color:#4E6B7B;border-color:rgba(78,107,123,.2)}
+.a-resort{background:rgba(160,107,60,.08);color:#9B6B3B;border-color:rgba(160,107,60,.2)}
+
+.l-estate{background:rgba(160,130,80,.08);color:#8B7040;border-color:rgba(160,130,80,.2)}
+.l-standard{background:rgba(94,139,139,.08);color:#4E7B7B;border-color:rgba(94,139,139,.2)}
+.l-condo{background:rgba(139,107,139,.08);color:#8B6B8B;border-color:rgba(139,107,139,.2)}
+
+.clear-btn{
+  display:block;text-align:center;padding:12px;margin:8px 16px 16px;
+  font-size:10px;color:var(--cr);background:var(--dp);border-radius:10px;
+  cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;
+  transition:background .2s
+}
+.clear-btn:hover{background:var(--ch)}
+
+/* ── RESULTS LIST ── */
+.cnt{font-size:11px;color:var(--tp);font-weight:300;padding:10px 16px 6px}
+.cnt b{color:var(--dk);font-weight:700}
+
+.cl{list-style:none;padding:0 10px 20px}
+.cl li{
+  font-size:13px;padding:10px 12px;border-radius:10px;cursor:pointer;
+  transition:all .2s;display:flex;align-items:flex-start;gap:10px;margin-bottom:3px
+}
+.cl li:hover,.cl li:active{background:var(--sa)}
+.cl li .pin{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.cl li .info{flex:1;min-width:0}
+.cl li .nm{font-weight:500;letter-spacing:.2px;display:block;font-size:13px;color:var(--dp)}
+.cl li .row2{display:flex;gap:6px;margin-top:3px;align-items:center;flex-wrap:wrap}
+.cl li .price{font-size:11px;font-weight:700;letter-spacing:.3px}
+.cl li .area-label{font-size:9px;color:var(--tp);letter-spacing:.3px}
+.cl li .lot-label{font-size:8px;color:var(--br);background:var(--sa);padding:2px 6px;border-radius:6px}
+.cl li .tags{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
+
+.pr-ultra{color:#8B5E2B}.pr-high{color:#7B5B7B}.pr-mid{color:#4E7B7B}.pr-entry{color:#5E7B4B}
+
+.t{font-size:7.5px;padding:2px 5px;border-radius:8px;text-transform:uppercase;letter-spacing:.6px;font-weight:700;border:1px solid;white-space:nowrap}
+.t-gated{background:rgba(139,107,139,.05);color:#8B6B8B;border-color:rgba(139,107,139,.15)}
+.t-golf{background:rgba(107,139,94,.05);color:#5E7B4B;border-color:rgba(107,139,94,.15)}
+.t-ocean{background:rgba(94,139,139,.05);color:#4E7B7B;border-color:rgba(94,139,139,.15)}
+.t-estate{background:rgba(160,130,80,.05);color:#8B7040;border-color:rgba(160,130,80,.15)}
+.t-marina{background:rgba(78,107,123,.05);color:#4E6B7B;border-color:rgba(78,107,123,.15)}
+.t-resort{background:rgba(160,107,60,.05);color:#9B6B3B;border-color:rgba(160,107,60,.15)}
+
+/* ── Popup ── */
+.leaflet-popup-content-wrapper{background:var(--wm)!important;color:var(--dp)!important;border-radius:12px!important;border:1px solid var(--ln)!important;box-shadow:0 10px 40px rgba(58,48,40,.15)!important;font-family:'Lato',sans-serif!important}
+.leaflet-popup-tip{background:var(--wm)!important}
+.leaflet-popup-content{margin:12px 16px!important}
+.pn{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:16px;margin-bottom:2px}
+.pa{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:300}
+.pp{font-size:14px;font-weight:700;margin-top:6px}
+.plx{font-size:10px;color:var(--br);margin-top:2px}
+.pd{font-size:11px;color:var(--br);margin-top:5px;line-height:1.5;font-weight:300}
+.pt{margin-top:8px;display:flex;gap:4px;flex-wrap:wrap}
+
+/* ── DESKTOP: side panel instead of bottom sheet ── */
+@media(min-width:861px){
+  #app{flex-direction:row}
+  #sheet{
+    position:relative;width:380px;max-height:none;height:100%;
+    border-radius:0;box-shadow:none;border-right:1px solid var(--sa);
+    transform:none!important;flex-shrink:0
+  }
+  #handle{display:none}
+  #sheet.peek,#sheet.half,#sheet.full{transform:none!important}
+  #panels{flex:1}
+}
+
+/* ── MOBILE header smaller ── */
+@media(max-width:860px){
+  #hdr{padding:10px 16px 8px}
+  #hdr h1{font-size:18px;letter-spacing:3px}
+  #hdr .s1{font-size:8px;letter-spacing:1.5px}
+}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <h1>Grand Strand Luxury</h1>
+  <div class="s1">Horry &amp; Georgetown County &nbsp;·&nbsp; Customize Your Search</div>
+</div>
+<div id="app">
+  <div id="m"></div>
+  <div id="sheet" class="peek">
+    <div id="handle">
+      <div class="grip"></div>
+      <div class="peek-label" id="peekLabel">40 Communities · Swipe Up to Filter</div>
+    </div>
+    <div id="tabs">
+      <div class="tab on" data-tab="results">Results</div>
+      <div class="tab" data-tab="filters">Filters</div>
+    </div>
+    <div id="panels">
+      <!-- RESULTS PANEL -->
+      <div class="panel on" id="resultsPanel">
+        <div class="cnt" id="cnt"></div>
+        <ul class="cl" id="cl"></ul>
+      </div>
+      <!-- FILTERS PANEL -->
+      <div class="panel" id="filtersPanel">
+        <div id="fpanel">
+          <div class="fg">
+            <div class="fg-label">Price Range <span class="reset" id="priceReset">Reset</span></div>
+            <div class="range-wrap">
+              <div class="range-track"></div>
+              <div class="range-fill" id="rangeFill"></div>
+              <input type="range" id="rMin" min="0" max="5000" step="50" value="0">
+              <input type="range" id="rMax" min="0" max="5000" step="50" value="5000">
+            </div>
+            <div class="range-vals"><span id="rvMin">$0</span><span id="rvMax">$5M+</span></div>
+          </div>
+          <div class="fg">
+            <div class="fg-label">Location <span class="reset" id="locReset">Reset</span></div>
+            <div class="chips" id="locChips"></div>
+          </div>
+          <div class="fg">
+            <div class="fg-label">Amenities <span class="reset" id="amenReset">Reset</span></div>
+            <div class="chips" id="amenChips"></div>
+          </div>
+          <div class="fg">
+            <div class="fg-label">Lot Size <span class="reset" id="lotReset">Reset</span></div>
+            <div class="chips" id="lotChips"></div>
+          </div>
+          <div class="clear-btn" id="clearAll">Clear All Filters</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA (same 40 communities) ──
+const S=[
+{n:"Belle Isle Yacht Club",lat:33.3043,lng:-79.2934,area:"Georgetown",areaKey:"georgetown",tags:["gated","marina","estate"],color:"#8B7355",d:"Private gated yacht club, full-service marina, private beach house",lo:259,hi:590,lot:"mixed"},
+{n:"Wedgefield Plantation",lat:33.4268,lng:-79.2499,area:"Georgetown",areaKey:"georgetown",tags:["golf","gated"],color:"#8B7355",d:"Gated golf community on Black River with private course",lo:200,hi:580,lot:"standard"},
+{n:"DeBordieu Colony",lat:33.3599,lng:-79.1567,area:"Pawleys Island",areaKey:"pawleys",tags:["gated","ocean","estate"],color:"#C9865B",d:"1,900-acre ultra-exclusive guard-gated oceanfront",lo:300,hi:4000,lot:"estate"},
+{n:"Pawleys Plantation",lat:33.4327,lng:-79.2345,area:"Pawleys Island",areaKey:"pawleys",tags:["golf","gated"],color:"#C9865B",d:"Jack Nicklaus Signature course with luxury villas",lo:280,hi:1800,lot:"mixed"},
+{n:"Heritage Plantation",lat:33.4447,lng:-79.1758,area:"Pawleys Island",areaKey:"pawleys",tags:["golf","gated","marina"],color:"#C9865B",d:"500 homes, golf course, private marina on ICW",lo:479,hi:900,lot:"standard"},
+{n:"The Reserve",lat:33.4576,lng:-79.1405,area:"Pawleys Island",areaKey:"pawleys",tags:["golf","gated","marina"],color:"#C9865B",d:"700-acre Greg Norman course, yacht club, beach access",lo:369,hi:1900,lot:"estate"},
+{n:"Prince George",lat:33.4150,lng:-79.1280,area:"Pawleys Island",areaKey:"pawleys",tags:["gated","ocean","estate"],color:"#C9865B",d:"1,900-acre gated oceanfront and riverfront estates",lo:1000,hi:3600,lot:"estate"},
+{n:"Allston Plantation",lat:33.4250,lng:-79.1380,area:"Pawleys Island",areaKey:"pawleys",tags:["gated","estate"],color:"#C9865B",d:"Intimate gated plantation, custom estate homes",lo:490,hi:600,lot:"estate"},
+{n:"Litchfield Plantation",lat:33.4780,lng:-79.1375,area:"Litchfield Beach",areaKey:"litchfield",tags:["gated","estate"],color:"#5E8B8B",d:"Historic rice plantation on the Waccamaw River",lo:349,hi:1900,lot:"estate"},
+{n:"Litchfield By The Sea",lat:33.4248,lng:-79.1208,area:"Litchfield Beach",areaKey:"litchfield",tags:["gated","ocean","resort"],color:"#5E8B8B",d:"4,000-acre private gated oceanfront resort",lo:200,hi:2600,lot:"mixed"},
+{n:"Willbrook Plantation",lat:33.4486,lng:-79.1381,area:"Litchfield Beach",areaKey:"litchfield",tags:["golf","gated"],color:"#5E8B8B",d:"Dan Maples course, 500 homes, plantation setting",lo:690,hi:1700,lot:"standard"},
+{n:"Litchfield Country Club",lat:33.4473,lng:-79.1437,area:"Litchfield Beach",areaKey:"litchfield",tags:["golf"],color:"#5E8B8B",d:"Historic 1966 championship course, 500+ residences",lo:215,hi:850,lot:"standard"},
+{n:"River Club",lat:33.4669,lng:-79.1248,area:"Litchfield Beach",areaKey:"litchfield",tags:["golf","gated"],color:"#5E8B8B",d:"Tom Jackson course, 272 homes, private beach access",lo:569,hi:687,lot:"standard"},
+{n:"Tradition Club",lat:33.4368,lng:-79.1423,area:"Litchfield Beach",areaKey:"litchfield",tags:["golf","gated"],color:"#5E8B8B",d:"Course of the Year, gated with resort amenities",lo:530,hi:810,lot:"standard"},
+{n:"Wachesaw Plantation",lat:33.5481,lng:-79.0776,area:"Murrells Inlet",areaKey:"murrells",tags:["golf","gated","estate"],color:"#8B6B8B",d:"700-acre exclusive, Tom Fazio course, 24/7 security",lo:379,hi:1950,lot:"estate"},
+{n:"Prince Creek · TPC",lat:33.5580,lng:-79.0900,area:"Murrells Inlet",areaKey:"murrells",tags:["golf","gated"],color:"#8B6B8B",d:"2,800-acre, SC's only TPC Golf Course",lo:263,hi:1350,lot:"mixed"},
+{n:"Blackmoor",lat:33.6044,lng:-79.0729,area:"Murrells Inlet",areaKey:"murrells",tags:["golf"],color:"#8B6B8B",d:"Gary Player course on Longwood Plantation",lo:179,hi:700,lot:"standard"},
+{n:"True Blue Plantation",lat:33.4584,lng:-79.1455,area:"Murrells Inlet",areaKey:"murrells",tags:["golf"],color:"#8B6B8B",d:"Mike Strantz championship, ICW setting",lo:140,hi:500,lot:"standard"},
+{n:"Highwood at Prince Creek",lat:33.5620,lng:-79.0850,area:"Murrells Inlet",areaKey:"murrells",tags:["golf","gated"],color:"#8B6B8B",d:"Gated enclave bordering TPC golf course",lo:450,hi:900,lot:"standard"},
+{n:"Wilderness Plantation",lat:33.5250,lng:-79.0680,area:"Murrells Inlet",areaKey:"murrells",tags:["gated","estate"],color:"#8B6B8B",d:"2,800 acres, 2-15 acre lots, equestrian facility",lo:500,hi:1500,lot:"estate"},
+{n:"Prestwick Country Club",lat:33.6241,lng:-78.9683,area:"Surfside Beach",areaKey:"surfside",tags:["golf","gated"],color:"#7B9B6B",d:"Dye championship, 2025 Course of the Year",lo:250,hi:525,lot:"standard"},
+{n:"Cypress River Plantation",lat:33.6250,lng:-79.0000,area:"Surfside Beach",areaKey:"surfside",tags:["gated","estate"],color:"#7B9B6B",d:"Exclusive gated estate on wooded lots",lo:300,hi:1200,lot:"estate"},
+{n:"Grande Dunes",lat:33.7489,lng:-78.8007,area:"Myrtle Beach",areaKey:"myrtle",tags:["golf","gated","ocean","marina"],color:"#6B7B8B",d:"2,200-acre ultra-premium, marina, Ocean Club",lo:259,hi:4400,lot:"mixed"},
+{n:"The Dunes Golf & Beach Club",lat:33.7569,lng:-78.7959,area:"Myrtle Beach",areaKey:"myrtle",tags:["golf","ocean"],color:"#6B7B8B",d:"750-member private oceanfront club, RTJ Sr.",lo:800,hi:3000,lot:"estate"},
+{n:"Kingston Plantation",lat:33.7088,lng:-78.8458,area:"Myrtle Beach",areaKey:"myrtle",tags:["gated","ocean","resort"],color:"#6B7B8B",d:"145-acre gated oceanfront, Top 10 Luxury",lo:210,hi:1150,lot:"condo"},
+{n:"Arcadian Shores",lat:33.7550,lng:-78.7920,area:"Myrtle Beach",areaKey:"myrtle",tags:["golf"],color:"#6B7B8B",d:"Rees Jones course near Grande Dunes",lo:245,hi:795,lot:"standard"},
+{n:"Pine Lakes Country Club",lat:33.7320,lng:-78.8430,area:"Myrtle Beach",areaKey:"myrtle",tags:["golf","estate"],color:"#6B7B8B",d:"First Myrtle Beach course (1927), Historic Register",lo:200,hi:1200,lot:"standard"},
+{n:"Waterbridge",lat:33.6850,lng:-78.9600,area:"Carolina Forest",areaKey:"carolina",tags:["gated","resort"],color:"#6B8B7B",d:"60-acre lake, largest residential pool in SC",lo:400,hi:700,lot:"standard"},
+{n:"The Bluffs on the Waterway",lat:33.7100,lng:-78.8800,area:"Carolina Forest",areaKey:"carolina",tags:["gated","estate","marina"],color:"#6B8B7B",d:"Custom Mediterranean homes on ICW",lo:850,hi:2000,lot:"estate"},
+{n:"Black Creek Plantation",lat:33.7200,lng:-78.9100,area:"Carolina Forest",areaKey:"carolina",tags:["gated","estate"],color:"#6B8B7B",d:"1-5+ acre estate lots, equestrian trails",lo:900,hi:1500,lot:"estate"},
+{n:"Brighton Lakes",lat:33.7000,lng:-78.9400,area:"Carolina Forest",areaKey:"carolina",tags:["gated"],color:"#6B8B7B",d:"280+ custom homes, private owner's club",lo:270,hi:559,lot:"standard"},
+{n:"Tidewater Plantation",lat:33.8480,lng:-78.6246,area:"North Myrtle Beach",areaKey:"nmb",tags:["golf","gated","ocean"],color:"#9B7B5B",d:"Top-rated course, 5 pools, oceanfront cabana",lo:300,hi:1300,lot:"mixed"},
+{n:"Barefoot Resort & Golf",lat:33.8064,lng:-78.7462,area:"North Myrtle Beach",areaKey:"nmb",tags:["golf","gated","marina","resort"],color:"#9B7B5B",d:"Four championship courses, deep-water marina",lo:204,hi:1150,lot:"mixed"},
+{n:"Seabrook Plantation",lat:33.8100,lng:-78.6800,area:"North Myrtle Beach",areaKey:"nmb",tags:["gated","ocean"],color:"#9B7B5B",d:"68-acre gated, private oceanfront amenity center",lo:400,hi:1450,lot:"standard"},
+{n:"Plantation Lakes",lat:33.7850,lng:-78.7500,area:"North Myrtle Beach",areaKey:"nmb",tags:["gated","estate"],color:"#9B7B5B",d:"15 miles of shoreline, custom homes",lo:500,hi:1000,lot:"estate"},
+{n:"Waterfall",lat:33.8350,lng:-78.6450,area:"Little River",areaKey:"lr",tags:["gated"],color:"#7B8B6B",d:"138 all-brick homes around 8.5-acre lake",lo:300,hi:675,lot:"standard"},
+{n:"Big Landing",lat:33.8290,lng:-78.6380,area:"Little River",areaKey:"lr",tags:["gated","marina"],color:"#7B8B6B",d:"Gated on ICW, century-old oaks, fishing pier",lo:300,hi:1000,lot:"standard"},
+{n:"Crystal Pointe",lat:33.8310,lng:-78.6400,area:"Little River",areaKey:"lr",tags:["gated","marina"],color:"#7B8B6B",d:"Exclusive ~20 homes on ICW, private dock",lo:700,hi:1000,lot:"estate"},
+{n:"Pelican Bay",lat:33.8270,lng:-78.6480,area:"Little River",areaKey:"lr",tags:["gated","marina"],color:"#7B8B6B",d:"Half-acre lots, ICW access, boat launch",lo:300,hi:600,lot:"standard"},
+{n:"Mariners Pointe",lat:33.8692,lng:-78.6184,area:"Little River",areaKey:"lr",tags:["marina"],color:"#7B8B6B",d:"Nantucket-style, 116-slip marina on ICW",lo:280,hi:400,lot:"condo"},
+];
+
+// ── MAP ──
+const map=L.map('m',{center:[33.58,-78.95],zoom:11,maxZoom:18,minZoom:9,zoomControl:false});
+L.control.zoom({position:'topright'}).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+  attribution:'&copy; OSM &copy; CARTO',subdomains:'abcd',maxZoom:19}).addTo(map);
+
+function tla(t){return{gated:'Gated',golf:'Golf',ocean:'Oceanfront',estate:'Estate',marina:'Marina',resort:'Resort'}[t]||t}
+function fmt(v){return v>=1000?'$'+(v/1000).toFixed(1)+'M':'$'+v+'K'}
+function tierCls(hi){if(hi>=2000)return'pr-ultra';if(hi>=1000)return'pr-high';if(hi>=500)return'pr-mid';return'pr-entry'}
+function lotLabel(l){return{estate:'Estate Lots',standard:'Standard Lots',mixed:'Mixed',condo:'Condos / Villas'}[l]||l}
+
+function mkIcon(color){
+  return L.divIcon({className:'',
+    html:`<div style="width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,${color}cc,${color});border:2px solid rgba(255,255,255,.85);box-shadow:0 2px 8px rgba(0,0,0,.15),0 0 0 1px ${color}33"></div>`,
+    iconSize:[14,14],iconAnchor:[7,7]})
+}
+
+const markers=[];
+const cl=document.getElementById('cl');
+
+S.forEach((s,i)=>{
+  const m=L.marker([s.lat,s.lng],{icon:mkIcon(s.color)}).addTo(map);
+  const th=s.tags.map(t=>`<span class="t t-${t}">${tla(t)}</span>`).join('');
+  m.bindPopup(`<div class="pn">${s.n}</div><div class="pa" style="color:${s.color}">${s.area}</div>
+    <div class="pp ${tierCls(s.hi)}">${fmt(s.lo)} – ${fmt(s.hi)}</div>
+    <div class="plx">${lotLabel(s.lot)}</div>
+    <div class="pd">${s.d}</div><div class="pt">${th}</div>`,{closeButton:false,maxWidth:260});
+  m.on('click',function(){map.flyTo([s.lat,s.lng],14,{duration:.5})});
+  markers.push({marker:m,data:s});
+
+  const li=document.createElement('li');
+  li.dataset.idx=i;
+  const thtml=s.tags.map(t=>`<span class="t t-${t}">${tla(t)}</span>`).join('');
+  li.innerHTML=`<span class="pin" style="background:${s.color}"></span>
+    <span class="info"><span class="nm">${s.n}</span>
+      <span class="row2"><span class="price ${tierCls(s.hi)}">${fmt(s.lo)}–${fmt(s.hi)}</span>
+        <span class="area-label">${s.area}</span>
+        <span class="lot-label">${lotLabel(s.lot)}</span></span>
+      <span class="tags">${thtml}</span></span>`;
+  li.onclick=()=>{map.flyTo([s.lat,s.lng],15,{duration:.5});sheet.className='peek'};
+  cl.appendChild(li);
+});
+
+// ── BOTTOM SHEET DRAG ──
+const sheet=document.getElementById('sheet');
+const handle=document.getElementById('handle');
+let startY,startState;
+
+handle.addEventListener('touchstart',e=>{startY=e.touches[0].clientY;startState=sheet.className},{passive:true});
+handle.addEventListener('touchmove',e=>{e.preventDefault()},{passive:false});
+handle.addEventListener('touchend',e=>{
+  const dy=startY-e.changedTouches[0].clientY;
+  if(dy>40){sheet.className=startState==='peek'?'half':startState==='half'?'full':'full'}
+  else if(dy<-40){sheet.className=startState==='full'?'half':startState==='half'?'peek':'peek'}
+});
+handle.addEventListener('click',()=>{
+  sheet.className=sheet.className==='peek'?'half':sheet.className==='half'?'full':'peek';
+});
+
+// ── TABS ──
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+    tab.classList.add('on');
+    document.getElementById(tab.dataset.tab+'Panel').classList.add('on');
+    if(sheet.className==='peek')sheet.className='half';
+  };
+});
+
+// ── FILTERS ──
+let priceMin=0,priceMax=5000;
+const activeLocs=new Set(),activeAmens=new Set(),activeLots=new Set();
+
+const rMin=document.getElementById('rMin'),rMax=document.getElementById('rMax');
+const rvMin=document.getElementById('rvMin'),rvMax=document.getElementById('rvMax');
+const rangeFill=document.getElementById('rangeFill');
+
+function updateRange(){
+  let lo=+rMin.value,hi=+rMax.value;
+  if(lo>hi){[rMin.value,rMax.value]=[hi,lo];lo=+rMin.value;hi=+rMax.value}
+  priceMin=lo;priceMax=hi;
+  rvMin.textContent=lo>=1000?'$'+(lo/1000).toFixed(1)+'M':'$'+lo+'K';
+  rvMax.textContent=hi>=5000?'$5M+':hi>=1000?'$'+(hi/1000).toFixed(1)+'M':'$'+hi+'K';
+  const pct=v=>(v/5000)*100;
+  rangeFill.style.left=pct(lo)+'%';rangeFill.style.width=(pct(hi)-pct(lo))+'%';
+  applyFilters();
+}
+rMin.oninput=rMax.oninput=updateRange;
+document.getElementById('priceReset').onclick=()=>{rMin.value=0;rMax.value=5000;updateRange()};
+updateRange();
+
+function buildChips(el,items,activeSet,resetId){
+  items.forEach(it=>{
+    const c=document.createElement('span');
+    c.className=`chip ${it.cls} on`;c.textContent=it.l;c.dataset.k=it.k;
+    c.onclick=()=>{
+      if(activeSet.size===0){items.forEach(x=>activeSet.add(x.k));activeSet.delete(it.k)}
+      else if(activeSet.has(it.k)){activeSet.delete(it.k);if(activeSet.size===0)activeSet.clear()}
+      else{activeSet.add(it.k)}
+      el.querySelectorAll('.chip').forEach(ch=>ch.classList.toggle('on',activeSet.size===0||activeSet.has(ch.dataset.k)));
+      applyFilters();
+    };el.appendChild(c);
+  });
+  document.getElementById(resetId).onclick=()=>{activeSet.clear();el.querySelectorAll('.chip').forEach(c=>c.classList.add('on'));applyFilters()};
+}
+
+buildChips(document.getElementById('locChips'),[
+  {k:'georgetown',l:'Georgetown',cls:'c-georgetown'},{k:'pawleys',l:'Pawleys Island',cls:'c-pawleys'},
+  {k:'litchfield',l:'Litchfield',cls:'c-litchfield'},{k:'murrells',l:'Murrells Inlet',cls:'c-murrells'},
+  {k:'surfside',l:'Surfside',cls:'c-surfside'},{k:'myrtle',l:'Myrtle Beach',cls:'c-myrtle'},
+  {k:'carolina',l:'Carolina Forest',cls:'c-carolina'},{k:'nmb',l:'North Myrtle Beach',cls:'c-nmb'},
+  {k:'lr',l:'Little River',cls:'c-lr'},
+],activeLocs,'locReset');
+
+buildChips(document.getElementById('amenChips'),[
+  {k:'gated',l:'Gated',cls:'a-gated'},{k:'golf',l:'Golf',cls:'a-golf'},
+  {k:'ocean',l:'Oceanfront',cls:'a-ocean'},{k:'estate',l:'Estate',cls:'a-estate'},
+  {k:'marina',l:'Marina',cls:'a-marina'},{k:'resort',l:'Resort',cls:'a-resort'},
+],activeAmens,'amenReset');
+
+buildChips(document.getElementById('lotChips'),[
+  {k:'estate',l:'Estate Lots',cls:'l-estate'},{k:'standard',l:'Standard',cls:'l-standard'},
+  {k:'mixed',l:'Mixed',cls:'l-standard'},{k:'condo',l:'Condos',cls:'l-condo'},
+],activeLots,'lotReset');
+
+document.getElementById('clearAll').onclick=()=>{
+  rMin.value=0;rMax.value=5000;updateRange();
+  [activeLocs,activeAmens,activeLots].forEach(s=>s.clear());
+  document.querySelectorAll('.chip').forEach(c=>c.classList.add('on'));
+  applyFilters();
+};
+
+function applyFilters(){
+  let vis=0;
+  markers.forEach(({marker,data},i)=>{
+    const ok=
+      (data.hi>=priceMin&&data.lo<=priceMax)&&
+      (activeLocs.size===0||activeLocs.has(data.areaKey))&&
+      (activeAmens.size===0||data.tags.some(t=>activeAmens.has(t)))&&
+      (activeLots.size===0||activeLots.has(data.lot));
+    if(ok){marker.addTo(map);vis++}else{marker.remove()}
+    cl.children[i].style.display=ok?'':'none';
+  });
+  document.getElementById('cnt').innerHTML=`Showing <b>${vis}</b> of ${S.length} communities`;
+  document.getElementById('peekLabel').textContent=`${vis} Communities · Swipe Up to Filter`;
+}
+applyFilters();
+
+L.control.scale({imperial:true,metric:false}).addTo(map);
+</script>
+</body>
+</html>
