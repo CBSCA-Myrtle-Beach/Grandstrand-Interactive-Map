@@ -202,10 +202,7 @@ body{font-family:'Lato',sans-serif;background:var(--cr);color:var(--dp)}
   #hdr .s1{font-size:9px;letter-spacing:2.5px}
   #hdr{padding:14px 36px 12px}
 }
-@media(max-width:860px){
-  #panel{display:none}
-  #panel.on{display:flex}
-}
+/* Mobile: panel uses transform to slide up/down — no display:none needed */
 
 /* ── ADMIN BUTTON IN HEADER ── */
 #adminBtn{
