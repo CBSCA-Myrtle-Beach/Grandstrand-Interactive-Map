@@ -16,92 +16,108 @@ body{font-family:'Lato',sans-serif;background:var(--cr);color:var(--dp)}
 /* ── HEADER ── */
 #hdr{
   background:linear-gradient(135deg,var(--ch),#1f1a14 50%,var(--dk));
-  padding:14px 20px 12px;text-align:center;position:relative;z-index:1000;
-  border-bottom:1px solid rgba(201,169,110,.3)
+  padding:12px 20px 10px;text-align:center;position:relative;z-index:1001;
+  border-bottom:1px solid rgba(201,169,110,.3);flex-shrink:0
 }
 #hdr::after{content:'';position:absolute;bottom:0;left:25%;right:25%;height:1px;background:linear-gradient(90deg,transparent,var(--gd),transparent)}
-#hdr h1{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:500;color:var(--cr);letter-spacing:4px;text-transform:uppercase}
-#hdr .s1{font-size:9px;color:var(--tp);letter-spacing:2px;text-transform:uppercase;font-weight:300;margin-top:4px}
+#hdr h1{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:500;color:var(--cr);letter-spacing:3px;text-transform:uppercase}
+#hdr .s1{font-size:8px;color:var(--tp);letter-spacing:2px;text-transform:uppercase;font-weight:300;margin-top:3px}
 
-/* ── LAYOUT ── */
-#app{display:flex;flex-direction:column;height:calc(100vh - 60px);position:relative}
+/* ── APP SHELL ── */
+#app{display:flex;flex-direction:column;height:100vh}
+#mapwrap{flex:1;position:relative;min-height:0}
+#m{width:100%;height:100%}
 
-/* Map always visible */
-#m{flex:1;z-index:1}
+/* ── MOBILE BOTTOM BAR ── */
+#bottombar{
+  display:flex;flex-shrink:0;border-top:1px solid var(--sa);background:var(--wm);z-index:1001
+}
+.bb-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:10px 4px;cursor:pointer;gap:3px;transition:background .15s;
+  border:none;background:none;font-family:'Lato',sans-serif
+}
+.bb-btn:active{background:var(--sa)}
+.bb-btn svg{width:20px;height:20px;stroke:var(--br);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.bb-btn span{font-size:9px;color:var(--br);letter-spacing:1px;text-transform:uppercase;font-weight:600}
+.bb-btn.on span{color:var(--gd)}
+.bb-btn.on svg{stroke:var(--gd)}
+.bb-badge{
+  font-size:8px;background:var(--gd);color:var(--cr);border-radius:8px;
+  padding:1px 5px;font-weight:700;min-width:16px;text-align:center
+}
 
-/* ── MOBILE BOTTOM SHEET ── */
-#sheet{
-  position:absolute;bottom:0;left:0;right:0;z-index:1000;
+/* ── SLIDE-UP PANEL (mobile) ── */
+#overlay{
+  display:none;position:fixed;inset:0;background:rgba(42,35,28,.4);z-index:1002;
+  opacity:0;transition:opacity .25s
+}
+#overlay.on{display:block;opacity:1}
+
+#panel{
+  position:fixed;bottom:0;left:0;right:0;z-index:1003;
   background:var(--wm);border-radius:16px 16px 0 0;
-  box-shadow:0 -4px 24px rgba(58,48,40,.12);
-  transition:transform .35s cubic-bezier(.4,0,.2,1);
-  display:flex;flex-direction:column;
-  max-height:85vh;
-  transform:translateY(calc(100% - 54px));
+  box-shadow:0 -8px 40px rgba(58,48,40,.2);
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;max-height:88vh
 }
-#sheet.peek{transform:translateY(calc(100% - 54px))}
-#sheet.half{transform:translateY(50%)}
-#sheet.full{transform:translateY(0)}
+#panel.on{transform:translateY(0)}
 
-/* Drag handle */
-#handle{
-  padding:10px 0 6px;text-align:center;cursor:grab;flex-shrink:0;
-  -webkit-user-select:none;user-select:none;
+#panelHead{
+  padding:12px 16px 10px;border-bottom:1px solid var(--sa);flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between
 }
-#handle .grip{width:36px;height:4px;border-radius:2px;background:var(--ln);margin:0 auto}
-#handle .peek-label{
-  font-size:10px;color:var(--br);letter-spacing:1.5px;text-transform:uppercase;
-  font-weight:600;margin-top:4px
+#panelHead h3{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:600;color:var(--dp)}
+#panelClose{
+  width:32px;height:32px;border-radius:50%;background:var(--sa);border:none;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--dk)
 }
 
-/* Filter/result toggle tabs */
-#tabs{display:flex;border-bottom:1px solid var(--sa);flex-shrink:0;padding:0 16px}
-.tab{
-  flex:1;text-align:center;padding:8px 0;font-size:10px;letter-spacing:1.5px;
+/* Tabs inside panel */
+#ptabs{display:flex;border-bottom:1px solid var(--sa);flex-shrink:0}
+.ptab{
+  flex:1;text-align:center;padding:10px 0;font-size:10px;letter-spacing:1.5px;
   text-transform:uppercase;font-weight:600;color:var(--tp);cursor:pointer;
   border-bottom:2px solid transparent;transition:all .2s
 }
-.tab.on{color:var(--dp);border-bottom-color:var(--gd)}
+.ptab.on{color:var(--dp);border-bottom-color:var(--gd)}
 
-/* Panel content */
-#panels{flex:1;overflow:hidden;position:relative}
-.panel{position:absolute;inset:0;overflow-y:auto;padding:0;display:none}
-.panel.on{display:block}
-.panel::-webkit-scrollbar{width:4px}
-.panel::-webkit-scrollbar-thumb{background:var(--ln);border-radius:4px}
+#pcontent{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#pcontent::-webkit-scrollbar{width:4px}
+#pcontent::-webkit-scrollbar-thumb{background:var(--ln);border-radius:4px}
+.ppane{display:none;padding:0}
+.ppane.on{display:block}
 
-/* ── FILTER PANEL ── */
-#fpanel{padding:14px 16px}
-.fg{margin-bottom:14px}
+/* ── FILTER STYLES ── */
+#fpane{padding:14px 16px 20px}
+.fg{margin-bottom:16px}
 .fg-label{
   font-size:9px;color:var(--br);text-transform:uppercase;letter-spacing:1.5px;
-  font-weight:600;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between
+  font-weight:600;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between
 }
-.fg-label .reset{font-size:8px;color:var(--gd);cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400}
+.fg-label .reset{font-size:9px;color:var(--gd);cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400;padding:2px 6px}
 
-/* Range slider */
-.range-wrap{position:relative;height:40px;margin:0 4px}
-.range-track{position:absolute;top:16px;left:0;right:0;height:4px;background:var(--sa);border-radius:2px}
-.range-fill{position:absolute;top:16px;height:4px;background:var(--gd);border-radius:2px;pointer-events:none}
+.range-wrap{position:relative;height:44px;margin:0 4px}
+.range-track{position:absolute;top:18px;left:0;right:0;height:4px;background:var(--sa);border-radius:2px}
+.range-fill{position:absolute;top:18px;height:4px;background:var(--gd);border-radius:2px;pointer-events:none}
 .range-wrap input[type=range]{
   position:absolute;top:8px;width:100%;-webkit-appearance:none;appearance:none;
-  background:none;pointer-events:none;height:24px
+  background:none;pointer-events:none;height:28px
 }
 .range-wrap input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  -webkit-appearance:none;width:26px;height:26px;border-radius:50%;
   background:var(--wm);border:2px solid var(--gd);cursor:pointer;
-  pointer-events:all;box-shadow:0 2px 6px rgba(0,0,0,.15)
+  pointer-events:all;box-shadow:0 2px 8px rgba(0,0,0,.18)
 }
-.range-vals{display:flex;justify-content:space-between;font-size:11px;color:var(--dk);font-weight:600;margin-top:2px}
+.range-vals{display:flex;justify-content:space-between;font-size:12px;color:var(--dk);font-weight:700;margin-top:4px}
 
-/* Chips */
-.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{
-  font-size:9px;padding:6px 11px;border-radius:14px;cursor:pointer;
-  text-transform:uppercase;letter-spacing:.6px;font-weight:700;
+  font-size:10px;padding:7px 12px;border-radius:14px;cursor:pointer;
+  text-transform:uppercase;letter-spacing:.5px;font-weight:700;
   border:1px solid;transition:all .15s;user-select:none
 }
-.chip.on{opacity:1}.chip:not(.on){opacity:.3}
+.chip.on{opacity:1}.chip:not(.on){opacity:.28}
 
 .c-georgetown{background:rgba(139,115,85,.1);color:#8B7355;border-color:rgba(139,115,85,.25)}
 .c-pawleys{background:rgba(201,134,91,.1);color:#C9865B;border-color:rgba(201,134,91,.25)}
@@ -112,48 +128,42 @@ body{font-family:'Lato',sans-serif;background:var(--cr);color:var(--dp)}
 .c-carolina{background:rgba(107,139,123,.1);color:#6B8B7B;border-color:rgba(107,139,123,.25)}
 .c-nmb{background:rgba(155,123,91,.1);color:#9B7B5B;border-color:rgba(155,123,91,.25)}
 .c-lr{background:rgba(123,139,107,.1);color:#7B8B6B;border-color:rgba(123,139,107,.25)}
-
 .a-gated{background:rgba(139,107,139,.08);color:#8B6B8B;border-color:rgba(139,107,139,.2)}
 .a-golf{background:rgba(107,139,94,.08);color:#5E7B4B;border-color:rgba(107,139,94,.2)}
 .a-ocean{background:rgba(94,139,139,.08);color:#4E7B7B;border-color:rgba(94,139,139,.2)}
 .a-estate{background:rgba(160,130,80,.08);color:#8B7040;border-color:rgba(160,130,80,.2)}
 .a-marina{background:rgba(78,107,123,.08);color:#4E6B7B;border-color:rgba(78,107,123,.2)}
 .a-resort{background:rgba(160,107,60,.08);color:#9B6B3B;border-color:rgba(160,107,60,.2)}
-
 .l-estate{background:rgba(160,130,80,.08);color:#8B7040;border-color:rgba(160,130,80,.2)}
 .l-standard{background:rgba(94,139,139,.08);color:#4E7B7B;border-color:rgba(94,139,139,.2)}
 .l-condo{background:rgba(139,107,139,.08);color:#8B6B8B;border-color:rgba(139,107,139,.2)}
 
 .clear-btn{
-  display:block;text-align:center;padding:12px;margin:8px 16px 16px;
-  font-size:10px;color:var(--cr);background:var(--dp);border-radius:10px;
-  cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;
-  transition:background .2s
+  display:block;text-align:center;padding:14px;margin:10px 0 0;
+  font-size:11px;color:var(--cr);background:var(--dp);border-radius:12px;
+  cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;font-weight:600
 }
-.clear-btn:hover{background:var(--ch)}
 
 /* ── RESULTS LIST ── */
-.cnt{font-size:11px;color:var(--tp);font-weight:300;padding:10px 16px 6px}
+.cnt{font-size:12px;color:var(--tp);font-weight:300;padding:12px 16px 8px}
 .cnt b{color:var(--dk);font-weight:700}
-
 .cl{list-style:none;padding:0 10px 20px}
 .cl li{
-  font-size:13px;padding:10px 12px;border-radius:10px;cursor:pointer;
-  transition:all .2s;display:flex;align-items:flex-start;gap:10px;margin-bottom:3px
+  font-size:13px;padding:12px 12px;border-radius:10px;cursor:pointer;
+  transition:background .15s;display:flex;align-items:flex-start;gap:10px;
+  margin-bottom:2px
 }
-.cl li:hover,.cl li:active{background:var(--sa)}
+.cl li:active{background:var(--sa)}
 .cl li .pin{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .cl li .info{flex:1;min-width:0}
-.cl li .nm{font-weight:500;letter-spacing:.2px;display:block;font-size:13px;color:var(--dp)}
-.cl li .row2{display:flex;gap:6px;margin-top:3px;align-items:center;flex-wrap:wrap}
-.cl li .price{font-size:11px;font-weight:700;letter-spacing:.3px}
-.cl li .area-label{font-size:9px;color:var(--tp);letter-spacing:.3px}
+.cl li .nm{font-weight:500;display:block;font-size:14px;color:var(--dp)}
+.cl li .row2{display:flex;gap:6px;margin-top:4px;align-items:center;flex-wrap:wrap}
+.cl li .price{font-size:11px;font-weight:700}
+.cl li .area-label{font-size:9px;color:var(--tp)}
 .cl li .lot-label{font-size:8px;color:var(--br);background:var(--sa);padding:2px 6px;border-radius:6px}
 .cl li .tags{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
-
 .pr-ultra{color:#8B5E2B}.pr-high{color:#7B5B7B}.pr-mid{color:#4E7B7B}.pr-entry{color:#5E7B4B}
-
-.t{font-size:7.5px;padding:2px 5px;border-radius:8px;text-transform:uppercase;letter-spacing:.6px;font-weight:700;border:1px solid;white-space:nowrap}
+.t{font-size:8px;padding:2px 5px;border-radius:8px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;border:1px solid;white-space:nowrap}
 .t-gated{background:rgba(139,107,139,.05);color:#8B6B8B;border-color:rgba(139,107,139,.15)}
 .t-golf{background:rgba(107,139,94,.05);color:#5E7B4B;border-color:rgba(107,139,94,.15)}
 .t-ocean{background:rgba(94,139,139,.05);color:#4E7B7B;border-color:rgba(94,139,139,.15)}
@@ -161,7 +171,7 @@ body{font-family:'Lato',sans-serif;background:var(--cr);color:var(--dp)}
 .t-marina{background:rgba(78,107,123,.05);color:#4E6B7B;border-color:rgba(78,107,123,.15)}
 .t-resort{background:rgba(160,107,60,.05);color:#9B6B3B;border-color:rgba(160,107,60,.15)}
 
-/* ── Popup ── */
+/* Popup */
 .leaflet-popup-content-wrapper{background:var(--wm)!important;color:var(--dp)!important;border-radius:12px!important;border:1px solid var(--ln)!important;box-shadow:0 10px 40px rgba(58,48,40,.15)!important;font-family:'Lato',sans-serif!important}
 .leaflet-popup-tip{background:var(--wm)!important}
 .leaflet-popup-content{margin:12px 16px!important}
@@ -172,52 +182,176 @@ body{font-family:'Lato',sans-serif;background:var(--cr);color:var(--dp)}
 .pd{font-size:11px;color:var(--br);margin-top:5px;line-height:1.5;font-weight:300}
 .pt{margin-top:8px;display:flex;gap:4px;flex-wrap:wrap}
 
-/* ── DESKTOP: side panel instead of bottom sheet ── */
+/* ── DESKTOP: side panel ── */
 @media(min-width:861px){
   #app{flex-direction:row}
-  #sheet{
-    position:relative;width:380px;max-height:none;height:100%;
-    border-radius:0;box-shadow:none;border-right:1px solid var(--sa);
-    transform:none!important;flex-shrink:0
+  #hdr{position:fixed;top:0;left:0;right:0;z-index:1001}
+  #app{padding-top:52px}
+  #bottombar{display:none}
+  #overlay{display:none!important}
+  #panel{
+    position:relative;transform:none!important;border-radius:0;box-shadow:none;
+    width:380px;max-height:none;height:100%;flex-shrink:0;border-right:1px solid var(--sa);
+    display:flex!important
   }
-  #handle{display:none}
-  #sheet.peek,#sheet.half,#sheet.full{transform:none!important}
-  #panels{flex:1}
+  #panel.on{transform:none!important}
+  #panelHead{display:none}
+  #mapwrap{flex:1;order:2}
+  #panel{order:1;display:flex!important}
+  #hdr h1{font-size:24px;letter-spacing:5px}
+  #hdr .s1{font-size:9px;letter-spacing:2.5px}
+  #hdr{padding:14px 36px 12px}
+}
+@media(max-width:860px){
+  #panel{display:none}
+  #panel.on{display:flex}
 }
 
-/* ── MOBILE header smaller ── */
-@media(max-width:860px){
-  #hdr{padding:10px 16px 8px}
-  #hdr h1{font-size:18px;letter-spacing:3px}
-  #hdr .s1{font-size:8px;letter-spacing:1.5px}
+/* ── ADMIN BUTTON IN HEADER ── */
+#adminBtn{
+  position:absolute;right:20px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;padding:6px;color:var(--gd);
+  font-size:20px;opacity:.7;transition:opacity .2s
 }
+#adminBtn:hover{opacity:1}
+#adminBtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+/* ── ADMIN LOGIN OVERLAY ── */
+#adminLoginOverlay{
+  display:none;position:fixed;inset:0;background:rgba(42,35,28,.95);z-index:2000;
+  align-items:center;justify-content:center
+}
+#adminLoginOverlay.on{display:flex}
+#adminLoginBox{
+  background:var(--wm);border-radius:16px;padding:32px;max-width:360px;width:90%;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid var(--ln)
+}
+#adminLoginBox h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;font-weight:600;
+  color:var(--dp);margin-bottom:24px;text-align:center}
+#adminLoginBox .form-group{margin-bottom:16px}
+#adminLoginBox label{display:block;font-size:11px;color:var(--br);text-transform:uppercase;
+  letter-spacing:1.5px;font-weight:600;margin-bottom:6px}
+#adminLoginBox input[type=email],#adminLoginBox input[type=password]{
+  width:100%;padding:10px 12px;border:1px solid var(--ln);border-radius:8px;
+  font-family:'Lato',sans-serif;font-size:14px;color:var(--dp);background:var(--cr);
+  box-sizing:border-box}
+#adminLoginBox input:focus{outline:none;border-color:var(--gd);box-shadow:0 0 0 2px rgba(201,169,110,.1)}
+#adminLoginBox .btn-login{width:100%;padding:12px;background:var(--dp);color:var(--cr);
+  border:none;border-radius:8px;font-size:12px;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;cursor:pointer;margin-top:20px;transition:background .2s}
+#adminLoginBox .btn-login:hover{background:var(--dk)}
+#adminLoginBox .err{color:#c73c3c;font-size:12px;margin-top:12px;text-align:center;display:none}
+#adminLoginBox .err.on{display:block}
+
+/* ── ADMIN DASHBOARD ── */
+#adminDashboard{display:none;position:fixed;inset:0;z-index:2000;background:var(--wm);
+  flex-direction:column;overflow:hidden}
+#adminDashboard.on{display:flex}
+#adminDashHeader{
+  padding:16px 20px;border-bottom:1px solid var(--sa);flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--ch),#1f1a14 50%,var(--dk))
+}
+#adminDashHeader h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:600;
+  color:var(--cr);margin:0}
+#adminDashClose{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);
+  border:none;cursor:pointer;color:var(--cr);font-size:20px}
+#adminDashClose:hover{background:rgba(255,255,255,.25)}
+#adminLogoutBtn{padding:6px 12px;font-size:11px;background:var(--cr);color:var(--ch);
+  border:none;border-radius:8px;cursor:pointer;font-weight:600;text-transform:uppercase;
+  letter-spacing:1px;transition:background .2s}
+#adminLogoutBtn:hover{background:var(--ln)}
+#adminContent{flex:1;overflow-y:auto;padding:16px 20px 20px}
+#adminContent::-webkit-scrollbar{width:4px}
+#adminContent::-webkit-scrollbar-thumb{background:var(--ln);border-radius:4px}
+
+#adminToolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+#adminToolbar h3{font-size:14px;color:var(--dp);font-weight:600;margin:0}
+.btn-add{padding:8px 16px;background:var(--dp);color:var(--cr);border:none;
+  border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;text-transform:uppercase;
+  letter-spacing:1px;transition:background .2s}
+.btn-add:hover{background:var(--dk)}
+
+.btn-seed{padding:8px 16px;background:var(--gd);color:var(--ch);border:none;
+  border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;text-transform:uppercase;
+  letter-spacing:1px;transition:background .2s}
+.btn-seed:hover{background:#b8945a}
+
+#adminList{list-style:none;padding:0;margin:0}
+.admin-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;
+  border-bottom:1px solid var(--sa);background:var(--cr);margin-bottom:2px;border-radius:8px;transition:background .15s}
+.admin-row:active{background:var(--wm)}
+.admin-row .title{font-weight:500;font-size:14px;color:var(--dp)}
+.admin-row .meta{font-size:11px;color:var(--tp);margin-top:2px}
+.admin-row .left{flex:1;min-width:0}
+.admin-row .actions{display:flex;gap:8px;flex-shrink:0}
+.admin-row button{font-size:10px;padding:6px 14px;border-radius:8px;border:1px solid;
+  cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.btn-edit{color:var(--gd);border-color:var(--gd);background:transparent}
+.btn-edit:hover{background:rgba(201,169,110,.1)}
+.btn-delete{color:#c73c3c;border-color:#c73c3c;background:transparent}
+.btn-delete:hover{background:rgba(199,60,60,.1)}
+
+/* ── ADMIN FORM MODAL ── */
+#adminFormOverlay{display:none;position:fixed;inset:0;background:rgba(42,35,28,.5);z-index:2001;
+  align-items:center;justify-content:center}
+#adminFormOverlay.on{display:flex}
+#adminFormBox{background:var(--wm);border-radius:16px;padding:24px;max-width:500px;
+  width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);
+  border:1px solid var(--ln)}
+#adminFormBox h3{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:600;
+  color:var(--dp);margin:0 0 20px;text-align:center}
+#adminFormBox .form-group{margin-bottom:14px}
+#adminFormBox label{display:block;font-size:10px;color:var(--br);text-transform:uppercase;
+  letter-spacing:1.5px;font-weight:600;margin-bottom:6px}
+#adminFormBox input[type=text],#adminFormBox input[type=number],
+#adminFormBox textarea,#adminFormBox select{
+  width:100%;padding:10px;border:1px solid var(--ln);border-radius:8px;
+  font-family:'Lato',sans-serif;font-size:13px;color:var(--dp);background:var(--cr);
+  box-sizing:border-box}
+#adminFormBox input:focus,#adminFormBox textarea:focus,#adminFormBox select:focus{
+  outline:none;border-color:var(--gd);box-shadow:0 0 0 2px rgba(201,169,110,.1)}
+#adminFormBox textarea{resize:vertical;min-height:80px}
+#adminFormBox .checkbox-group{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+#adminFormBox .checkbox-item{display:flex;align-items:center;gap:6px}
+#adminFormBox input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--gd)}
+#adminFormBox .checkbox-item label{margin:0;text-transform:none;letter-spacing:normal}
+#adminFormBox .form-actions{display:flex;gap:10px;margin-top:20px;justify-content:center}
+#adminFormBox .btn-save{padding:10px 24px;background:var(--dp);color:var(--cr);
+  border:none;border-radius:8px;font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:1px;cursor:pointer;transition:background .2s}
+#adminFormBox .btn-save:hover{background:var(--dk)}
+#adminFormBox .btn-cancel{padding:10px 24px;background:var(--sa);color:var(--dp);
+  border:none;border-radius:8px;font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:1px;cursor:pointer;transition:background .2s}
+#adminFormBox .btn-cancel:hover{background:var(--ln)}
 </style>
 </head>
 <body>
 <div id="hdr">
   <h1>Grand Strand Luxury</h1>
   <div class="s1">Horry &amp; Georgetown County &nbsp;·&nbsp; Customize Your Search</div>
+  <button id="adminBtn" title="Admin Panel">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="3" width="7" height="7" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="14" width="7" height="7" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="14" width="7" height="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+  </button>
 </div>
 <div id="app">
-  <div id="m"></div>
-  <div id="sheet" class="peek">
-    <div id="handle">
-      <div class="grip"></div>
-      <div class="peek-label" id="peekLabel">40 Communities · Swipe Up to Filter</div>
+  <!-- Desktop: panel is always visible as sidebar -->
+  <div id="panel">
+    <div id="panelHead">
+      <h3 id="panelTitle">Communities</h3>
+      <button id="panelClose">&times;</button>
     </div>
-    <div id="tabs">
-      <div class="tab on" data-tab="results">Results</div>
-      <div class="tab" data-tab="filters">Filters</div>
+    <div id="ptabs">
+      <div class="ptab on" data-t="results">Results</div>
+      <div class="ptab" data-t="filters">Filters</div>
     </div>
-    <div id="panels">
-      <!-- RESULTS PANEL -->
-      <div class="panel on" id="resultsPanel">
+    <div id="pcontent">
+      <div class="ppane on" id="resultsPane">
         <div class="cnt" id="cnt"></div>
         <ul class="cl" id="cl"></ul>
       </div>
-      <!-- FILTERS PANEL -->
-      <div class="panel" id="filtersPanel">
-        <div id="fpanel">
+      <div class="ppane" id="filtersPane">
+        <div id="fpane">
           <div class="fg">
             <div class="fg-label">Price Range <span class="reset" id="priceReset">Reset</span></div>
             <div class="range-wrap">
@@ -245,51 +379,236 @@ body{font-family:'Lato',sans-serif;background:var(--cr);color:var(--dp)}
       </div>
     </div>
   </div>
+
+  <div id="mapwrap"><div id="m"></div></div>
+
+  <!-- Mobile bottom bar -->
+  <div id="bottombar">
+    <button class="bb-btn" id="bbList">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5"/><circle cx="4" cy="12" r="1.5"/><circle cx="4" cy="18" r="1.5"/></svg>
+      <span>List</span>
+      <span class="bb-badge" id="bbCount">40</span>
+    </button>
+    <button class="bb-btn" id="bbFilter">
+      <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      <span>Filters</span>
+    </button>
+    <button class="bb-btn" id="bbMap">
+      <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      <span>Map</span>
+    </button>
+  </div>
+</div>
+
+<div id="overlay"></div>
+
+<!-- ── ADMIN LOGIN ── -->
+<div id="adminLoginOverlay">
+  <div id="adminLoginBox">
+    <h2>Admin Access</h2>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="adminEmail" placeholder="admin@example.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="adminPassword" placeholder="••••••••">
+    </div>
+    <button class="btn-login" id="adminLoginBtn">Sign In</button>
+    <div class="err" id="adminLoginErr"></div>
+  </div>
+</div>
+
+<!-- ── ADMIN DASHBOARD ── -->
+<div id="adminDashboard">
+  <div id="adminDashHeader">
+    <h2>Community Admin</h2>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button id="adminLogoutBtn">Logout</button>
+      <button id="adminDashClose">&times;</button>
+    </div>
+  </div>
+  <div id="adminContent">
+    <div id="adminToolbar">
+      <h3>Communities</h3>
+      <button class="btn-add" id="adminAddBtn">+ Add Community</button>
+    </div>
+    <div id="seedContainer" style="display:none;margin-bottom:16px;padding:12px 16px;background:rgba(201,169,110,.08);border-radius:8px;border:1px solid rgba(201,169,110,.2)">
+      <p style="font-size:12px;color:var(--dp);margin:0 0 10px">Firestore is empty. Load default communities?</p>
+      <button class="btn-seed" id="seedBtn">Seed from Defaults (40)</button>
+    </div>
+    <ul id="adminList"></ul>
+  </div>
+</div>
+
+<!-- ── ADMIN FORM MODAL ── -->
+<div id="adminFormOverlay">
+  <div id="adminFormBox">
+    <h3 id="formTitle">Add Community</h3>
+    <form id="communityForm">
+      <div class="form-group">
+        <label>Name *</label>
+        <input type="text" id="formName" required>
+      </div>
+      <div class="form-group">
+        <label>Latitude *</label>
+        <input type="number" id="formLat" step="0.0001" required>
+      </div>
+      <div class="form-group">
+        <label>Longitude *</label>
+        <input type="number" id="formLng" step="0.0001" required>
+      </div>
+      <div class="form-group">
+        <label>Area *</label>
+        <select id="formArea" required onchange="updateAreaFields()">
+          <option value="">Select Area</option>
+          <option value="Georgetown">Georgetown</option>
+          <option value="Pawleys Island">Pawleys Island</option>
+          <option value="Litchfield Beach">Litchfield Beach</option>
+          <option value="Murrells Inlet">Murrells Inlet</option>
+          <option value="Surfside Beach">Surfside Beach</option>
+          <option value="Myrtle Beach">Myrtle Beach</option>
+          <option value="Carolina Forest">Carolina Forest</option>
+          <option value="North Myrtle Beach">North Myrtle Beach</option>
+          <option value="Little River">Little River</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Area Key</label>
+        <input type="text" id="formAreaKey" readonly>
+      </div>
+      <div class="form-group">
+        <label>Color</label>
+        <input type="text" id="formColor" readonly>
+      </div>
+      <div class="form-group">
+        <label>Tags</label>
+        <div class="checkbox-group">
+          <div class="checkbox-item"><input type="checkbox" id="formTag_gated" name="tags" value="gated"><label for="formTag_gated" style="margin:0">Gated</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="formTag_golf" name="tags" value="golf"><label for="formTag_golf" style="margin:0">Golf</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="formTag_ocean" name="tags" value="ocean"><label for="formTag_ocean" style="margin:0">Ocean</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="formTag_estate" name="tags" value="estate"><label for="formTag_estate" style="margin:0">Estate</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="formTag_marina" name="tags" value="marina"><label for="formTag_marina" style="margin:0">Marina</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="formTag_resort" name="tags" value="resort"><label for="formTag_resort" style="margin:0">Resort</label></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="formDescription"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Price Low (K) *</label>
+        <input type="number" id="formPriceLo" step="1" required>
+      </div>
+      <div class="form-group">
+        <label>Price High (K) *</label>
+        <input type="number" id="formPriceHi" step="1" required>
+      </div>
+      <div class="form-group">
+        <label>Lot Size *</label>
+        <select id="formLot" required>
+          <option value="">Select Lot Size</option>
+          <option value="estate">Estate Lots</option>
+          <option value="standard">Standard</option>
+          <option value="mixed">Mixed</option>
+          <option value="condo">Condos</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Order</label>
+        <input type="number" id="formOrder" step="1" value="0">
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-save">Save</button>
+        <button type="button" class="btn-cancel" onclick="closeForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script>
-// ── DATA (same 40 communities) ──
+// ── DATA ──
 const S=[
-{n:"Belle Isle Yacht Club",lat:33.3043,lng:-79.2934,area:"Georgetown",areaKey:"georgetown",tags:["gated","marina","estate"],color:"#8B7355",d:"Private gated yacht club, full-service marina, private beach house",lo:259,hi:590,lot:"mixed"},
-{n:"Wedgefield Plantation",lat:33.4268,lng:-79.2499,area:"Georgetown",areaKey:"georgetown",tags:["golf","gated"],color:"#8B7355",d:"Gated golf community on Black River with private course",lo:200,hi:580,lot:"standard"},
-{n:"DeBordieu Colony",lat:33.3599,lng:-79.1567,area:"Pawleys Island",areaKey:"pawleys",tags:["gated","ocean","estate"],color:"#C9865B",d:"1,900-acre ultra-exclusive guard-gated oceanfront",lo:300,hi:4000,lot:"estate"},
-{n:"Pawleys Plantation",lat:33.4327,lng:-79.2345,area:"Pawleys Island",areaKey:"pawleys",tags:["golf","gated"],color:"#C9865B",d:"Jack Nicklaus Signature course with luxury villas",lo:280,hi:1800,lot:"mixed"},
-{n:"Heritage Plantation",lat:33.4447,lng:-79.1758,area:"Pawleys Island",areaKey:"pawleys",tags:["golf","gated","marina"],color:"#C9865B",d:"500 homes, golf course, private marina on ICW",lo:479,hi:900,lot:"standard"},
-{n:"The Reserve",lat:33.4576,lng:-79.1405,area:"Pawleys Island",areaKey:"pawleys",tags:["golf","gated","marina"],color:"#C9865B",d:"700-acre Greg Norman course, yacht club, beach access",lo:369,hi:1900,lot:"estate"},
-{n:"Prince George",lat:33.4150,lng:-79.1280,area:"Pawleys Island",areaKey:"pawleys",tags:["gated","ocean","estate"],color:"#C9865B",d:"1,900-acre gated oceanfront and riverfront estates",lo:1000,hi:3600,lot:"estate"},
-{n:"Allston Plantation",lat:33.4250,lng:-79.1380,area:"Pawleys Island",areaKey:"pawleys",tags:["gated","estate"],color:"#C9865B",d:"Intimate gated plantation, custom estate homes",lo:490,hi:600,lot:"estate"},
+// Georgetown — Belle Isle: 1228 Belle Isle Rd, south of Georgetown on Winyah Bay/ICW
+{n:"Belle Isle Yacht Club",lat:33.3050,lng:-79.2750,area:"Georgetown",areaKey:"georgetown",tags:["gated","marina","estate"],color:"#8B7355",d:"Private gated yacht club, full-service marina, private beach house",lo:259,hi:590,lot:"mixed"},
+// Georgetown — Wedgefield: 129 Clubhouse Ln, on Black River west of Georgetown
+{n:"Wedgefield Plantation",lat:33.3890,lng:-79.3050,area:"Georgetown",areaKey:"georgetown",tags:["golf","gated"],color:"#8B7355",d:"Gated golf community on Black River with private course",lo:200,hi:580,lot:"standard"},
+// Pawleys — DeBordieu: gate on US-17, ~3mi north of Georgetown, ocean side
+{n:"DeBordieu Colony",lat:33.3640,lng:-79.1280,area:"Pawleys Island",areaKey:"pawleys",tags:["gated","ocean","estate"],color:"#C9865B",d:"1,900-acre ultra-exclusive guard-gated oceanfront",lo:300,hi:4000,lot:"estate"},
+// Pawleys — Pawleys Plantation: 70 Tanglewood Dr, south end off US-17, west side
+{n:"Pawleys Plantation",lat:33.4270,lng:-79.1520,area:"Pawleys Island",areaKey:"pawleys",tags:["golf","gated"],color:"#C9865B",d:"Jack Nicklaus Signature course with luxury villas",lo:280,hi:1800,lot:"mixed"},
+// Pawleys — Heritage: 1823 Heritage Dr, between Waccamaw River and beach, west of US-17
+{n:"Heritage Plantation",lat:33.4500,lng:-79.1400,area:"Pawleys Island",areaKey:"pawleys",tags:["golf","gated","marina"],color:"#C9865B",d:"500 homes, golf course, private marina on ICW",lo:479,hi:900,lot:"standard"},
+// Pawleys — The Reserve: 18 Reserve Dr, off US-17, large community west side
+{n:"The Reserve",lat:33.4650,lng:-79.1350,area:"Pawleys Island",areaKey:"pawleys",tags:["golf","gated","marina"],color:"#C9865B",d:"700-acre Greg Norman course, yacht club, beach access",lo:369,hi:1900,lot:"estate"},
+// Pawleys — Prince George: 6500 Ocean Hwy, ocean side of US-17, between Pawleys and Murrells Inlet
+{n:"Prince George",lat:33.4850,lng:-79.0750,area:"Pawleys Island",areaKey:"pawleys",tags:["gated","ocean","estate"],color:"#C9865B",d:"1,900-acre gated oceanfront and riverfront estates",lo:1000,hi:3600,lot:"estate"},
+// Pawleys — Allston: small plantation community off US-17 near Pawleys
+{n:"Allston Plantation",lat:33.4400,lng:-79.1300,area:"Pawleys Island",areaKey:"pawleys",tags:["gated","estate"],color:"#C9865B",d:"Intimate gated plantation, custom estate homes",lo:490,hi:600,lot:"estate"},
+// Litchfield — Plantation: Kings River Rd, on Waccamaw River, west of US-17
 {n:"Litchfield Plantation",lat:33.4780,lng:-79.1375,area:"Litchfield Beach",areaKey:"litchfield",tags:["gated","estate"],color:"#5E8B8B",d:"Historic rice plantation on the Waccamaw River",lo:349,hi:1900,lot:"estate"},
-{n:"Litchfield By The Sea",lat:33.4248,lng:-79.1208,area:"Litchfield Beach",areaKey:"litchfield",tags:["gated","ocean","resort"],color:"#5E8B8B",d:"4,000-acre private gated oceanfront resort",lo:200,hi:2600,lot:"mixed"},
-{n:"Willbrook Plantation",lat:33.4486,lng:-79.1381,area:"Litchfield Beach",areaKey:"litchfield",tags:["golf","gated"],color:"#5E8B8B",d:"Dan Maples course, 500 homes, plantation setting",lo:690,hi:1700,lot:"standard"},
-{n:"Litchfield Country Club",lat:33.4473,lng:-79.1437,area:"Litchfield Beach",areaKey:"litchfield",tags:["golf"],color:"#5E8B8B",d:"Historic 1966 championship course, 500+ residences",lo:215,hi:850,lot:"standard"},
-{n:"River Club",lat:33.4669,lng:-79.1248,area:"Litchfield Beach",areaKey:"litchfield",tags:["golf","gated"],color:"#5E8B8B",d:"Tom Jackson course, 272 homes, private beach access",lo:569,hi:687,lot:"standard"},
-{n:"Tradition Club",lat:33.4368,lng:-79.1423,area:"Litchfield Beach",areaKey:"litchfield",tags:["golf","gated"],color:"#5E8B8B",d:"Course of the Year, gated with resort amenities",lo:530,hi:810,lot:"standard"},
-{n:"Wachesaw Plantation",lat:33.5481,lng:-79.0776,area:"Murrells Inlet",areaKey:"murrells",tags:["golf","gated","estate"],color:"#8B6B8B",d:"700-acre exclusive, Tom Fazio course, 24/7 security",lo:379,hi:1950,lot:"estate"},
-{n:"Prince Creek · TPC",lat:33.5580,lng:-79.0900,area:"Murrells Inlet",areaKey:"murrells",tags:["golf","gated"],color:"#8B6B8B",d:"2,800-acre, SC's only TPC Golf Course",lo:263,hi:1350,lot:"mixed"},
-{n:"Blackmoor",lat:33.6044,lng:-79.0729,area:"Murrells Inlet",areaKey:"murrells",tags:["golf"],color:"#8B6B8B",d:"Gary Player course on Longwood Plantation",lo:179,hi:700,lot:"standard"},
-{n:"True Blue Plantation",lat:33.4584,lng:-79.1455,area:"Murrells Inlet",areaKey:"murrells",tags:["golf"],color:"#8B6B8B",d:"Mike Strantz championship, ICW setting",lo:140,hi:500,lot:"standard"},
-{n:"Highwood at Prince Creek",lat:33.5620,lng:-79.0850,area:"Murrells Inlet",areaKey:"murrells",tags:["golf","gated"],color:"#8B6B8B",d:"Gated enclave bordering TPC golf course",lo:450,hi:900,lot:"standard"},
-{n:"Wilderness Plantation",lat:33.5250,lng:-79.0680,area:"Murrells Inlet",areaKey:"murrells",tags:["gated","estate"],color:"#8B6B8B",d:"2,800 acres, 2-15 acre lots, equestrian facility",lo:500,hi:1500,lot:"estate"},
-{n:"Prestwick Country Club",lat:33.6241,lng:-78.9683,area:"Surfside Beach",areaKey:"surfside",tags:["golf","gated"],color:"#7B9B6B",d:"Dye championship, 2025 Course of the Year",lo:250,hi:525,lot:"standard"},
-{n:"Cypress River Plantation",lat:33.6250,lng:-79.0000,area:"Surfside Beach",areaKey:"surfside",tags:["gated","estate"],color:"#7B9B6B",d:"Exclusive gated estate on wooded lots",lo:300,hi:1200,lot:"estate"},
-{n:"Grande Dunes",lat:33.7489,lng:-78.8007,area:"Myrtle Beach",areaKey:"myrtle",tags:["golf","gated","ocean","marina"],color:"#6B7B8B",d:"2,200-acre ultra-premium, marina, Ocean Club",lo:259,hi:4400,lot:"mixed"},
-{n:"The Dunes Golf & Beach Club",lat:33.7569,lng:-78.7959,area:"Myrtle Beach",areaKey:"myrtle",tags:["golf","ocean"],color:"#6B7B8B",d:"750-member private oceanfront club, RTJ Sr.",lo:800,hi:3000,lot:"estate"},
-{n:"Kingston Plantation",lat:33.7088,lng:-78.8458,area:"Myrtle Beach",areaKey:"myrtle",tags:["gated","ocean","resort"],color:"#6B7B8B",d:"145-acre gated oceanfront, Top 10 Luxury",lo:210,hi:1150,lot:"condo"},
-{n:"Arcadian Shores",lat:33.7550,lng:-78.7920,area:"Myrtle Beach",areaKey:"myrtle",tags:["golf"],color:"#6B7B8B",d:"Rees Jones course near Grande Dunes",lo:245,hi:795,lot:"standard"},
-{n:"Pine Lakes Country Club",lat:33.7320,lng:-78.8430,area:"Myrtle Beach",areaKey:"myrtle",tags:["golf","estate"],color:"#6B7B8B",d:"First Myrtle Beach course (1927), Historic Register",lo:200,hi:1200,lot:"standard"},
-{n:"Waterbridge",lat:33.6850,lng:-78.9600,area:"Carolina Forest",areaKey:"carolina",tags:["gated","resort"],color:"#6B8B7B",d:"60-acre lake, largest residential pool in SC",lo:400,hi:700,lot:"standard"},
-{n:"The Bluffs on the Waterway",lat:33.7100,lng:-78.8800,area:"Carolina Forest",areaKey:"carolina",tags:["gated","estate","marina"],color:"#6B8B7B",d:"Custom Mediterranean homes on ICW",lo:850,hi:2000,lot:"estate"},
-{n:"Black Creek Plantation",lat:33.7200,lng:-78.9100,area:"Carolina Forest",areaKey:"carolina",tags:["gated","estate"],color:"#6B8B7B",d:"1-5+ acre estate lots, equestrian trails",lo:900,hi:1500,lot:"estate"},
-{n:"Brighton Lakes",lat:33.7000,lng:-78.9400,area:"Carolina Forest",areaKey:"carolina",tags:["gated"],color:"#6B8B7B",d:"280+ custom homes, private owner's club",lo:270,hi:559,lot:"standard"},
-{n:"Tidewater Plantation",lat:33.8480,lng:-78.6246,area:"North Myrtle Beach",areaKey:"nmb",tags:["golf","gated","ocean"],color:"#9B7B5B",d:"Top-rated course, 5 pools, oceanfront cabana",lo:300,hi:1300,lot:"mixed"},
-{n:"Barefoot Resort & Golf",lat:33.8064,lng:-78.7462,area:"North Myrtle Beach",areaKey:"nmb",tags:["golf","gated","marina","resort"],color:"#9B7B5B",d:"Four championship courses, deep-water marina",lo:204,hi:1150,lot:"mixed"},
-{n:"Seabrook Plantation",lat:33.8100,lng:-78.6800,area:"North Myrtle Beach",areaKey:"nmb",tags:["gated","ocean"],color:"#9B7B5B",d:"68-acre gated, private oceanfront amenity center",lo:400,hi:1450,lot:"standard"},
-{n:"Plantation Lakes",lat:33.7850,lng:-78.7500,area:"North Myrtle Beach",areaKey:"nmb",tags:["gated","estate"],color:"#9B7B5B",d:"15 miles of shoreline, custom homes",lo:500,hi:1000,lot:"estate"},
-{n:"Waterfall",lat:33.8350,lng:-78.6450,area:"Little River",areaKey:"lr",tags:["gated"],color:"#7B8B6B",d:"138 all-brick homes around 8.5-acre lake",lo:300,hi:675,lot:"standard"},
-{n:"Big Landing",lat:33.8290,lng:-78.6380,area:"Little River",areaKey:"lr",tags:["gated","marina"],color:"#7B8B6B",d:"Gated on ICW, century-old oaks, fishing pier",lo:300,hi:1000,lot:"standard"},
-{n:"Crystal Pointe",lat:33.8310,lng:-78.6400,area:"Little River",areaKey:"lr",tags:["gated","marina"],color:"#7B8B6B",d:"Exclusive ~20 homes on ICW, private dock",lo:700,hi:1000,lot:"estate"},
-{n:"Pelican Bay",lat:33.8270,lng:-78.6480,area:"Little River",areaKey:"lr",tags:["gated","marina"],color:"#7B8B6B",d:"Half-acre lots, ICW access, boat launch",lo:300,hi:600,lot:"standard"},
-{n:"Mariners Pointe",lat:33.8692,lng:-78.6184,area:"Little River",areaKey:"lr",tags:["marina"],color:"#7B8B6B",d:"Nantucket-style, 116-slip marina on ICW",lo:280,hi:400,lot:"condo"},
+// Litchfield — By The Sea: gate on US-17 (14276 Ocean Hwy), oceanfront resort
+{n:"Litchfield By The Sea",lat:33.4900,lng:-79.0800,area:"Litchfield Beach",areaKey:"litchfield",tags:["gated","ocean","resort"],color:"#5E8B8B",d:"4,000-acre private gated oceanfront resort",lo:200,hi:2600,lot:"mixed"},
+// Litchfield — Willbrook: 426 Tidewater Cir, west of US-17 near Willbrook Blvd
+{n:"Willbrook Plantation",lat:33.4750,lng:-79.1300,area:"Litchfield Beach",areaKey:"litchfield",tags:["golf","gated"],color:"#5E8B8B",d:"Dan Maples course, 500 homes, plantation setting",lo:690,hi:1700,lot:"standard"},
+// Litchfield — Country Club: 619 Country Club Dr, west of US-17
+{n:"Litchfield Country Club",lat:33.4700,lng:-79.1400,area:"Litchfield Beach",areaKey:"litchfield",tags:["golf"],color:"#5E8B8B",d:"Historic 1966 championship course, 500+ homes",lo:215,hi:850,lot:"standard"},
+// Litchfield — River Club: 1 Club Cir, between US-17 and beach, north of Litchfield Plantation
+{n:"River Club",lat:33.4850,lng:-79.1100,area:"Litchfield Beach",areaKey:"litchfield",tags:["golf","gated"],color:"#5E8B8B",d:"Tom Jackson course, 272 homes, private beach access",lo:569,hi:687,lot:"standard"},
+// Litchfield — Tradition: 1027 Willbrook Blvd, near Willbrook Plantation
+{n:"Tradition Club",lat:33.4720,lng:-79.1250,area:"Litchfield Beach",areaKey:"litchfield",tags:["golf","gated"],color:"#5E8B8B",d:"Course of the Year, gated with resort amenities",lo:530,hi:810,lot:"standard"},
+// Murrells Inlet — Wachesaw: 1930 Governors Landing Rd, west of US-17
+{n:"Wachesaw Plantation",lat:33.5180,lng:-79.0820,area:"Murrells Inlet",areaKey:"murrells",tags:["golf","gated","estate"],color:"#8B6B8B",d:"700-acre, Tom Fazio course, 24/7 security",lo:379,hi:1950,lot:"estate"},
+// Murrells Inlet — Prince Creek/TPC: 1199 TPC Blvd, off Hwy 707
+{n:"Prince Creek · TPC",lat:33.5500,lng:-79.0750,area:"Murrells Inlet",areaKey:"murrells",tags:["golf","gated"],color:"#8B6B8B",d:"2,800-acre, SC's only TPC Golf Course",lo:263,hi:1350,lot:"mixed"},
+// Murrells Inlet — Blackmoor: 6100 Longwood Dr, off US-17 bypass north of Murrells Inlet
+{n:"Blackmoor",lat:33.5750,lng:-79.0530,area:"Murrells Inlet",areaKey:"murrells",tags:["golf"],color:"#8B6B8B",d:"Gary Player course on Longwood Plantation",lo:179,hi:700,lot:"standard"},
+// Pawleys/MI — True Blue: 900 Blue Stem Dr, near TPC Blvd area
+{n:"True Blue Plantation",lat:33.5350,lng:-79.0850,area:"Murrells Inlet",areaKey:"murrells",tags:["golf"],color:"#8B6B8B",d:"Mike Strantz championship, ICW setting",lo:140,hi:500,lot:"standard"},
+// Murrells Inlet — Highwood: gated neighborhood within Prince Creek, off TPC Blvd
+{n:"Highwood at Prince Creek",lat:33.5550,lng:-79.0700,area:"Murrells Inlet",areaKey:"murrells",tags:["golf","gated"],color:"#8B6B8B",d:"Gated enclave bordering TPC golf course",lo:450,hi:900,lot:"standard"},
+// Murrells Inlet — Wilderness: large estate tract off Collins Creek area
+{n:"Wilderness Plantation",lat:33.5100,lng:-79.0700,area:"Murrells Inlet",areaKey:"murrells",tags:["gated","estate"],color:"#8B6B8B",d:"2,800 acres, 2-15 acre lots, equestrian",lo:500,hi:1500,lot:"estate"},
+// Surfside — Prestwick: 1001 Links Rd, off Hwy 544/Surfside area
+{n:"Prestwick Country Club",lat:33.6100,lng:-78.9730,area:"Surfside Beach",areaKey:"surfside",tags:["golf","gated"],color:"#7B9B6B",d:"Dye championship, 2025 Course of the Year",lo:250,hi:525,lot:"standard"},
+// Surfside — Cypress River: gated community off Hwy 544
+{n:"Cypress River Plantation",lat:33.6200,lng:-78.9850,area:"Surfside Beach",areaKey:"surfside",tags:["gated","estate"],color:"#7B9B6B",d:"Exclusive gated estate on wooded lots",lo:300,hi:1200,lot:"estate"},
+// Myrtle Beach — Grande Dunes: 8121 Amalfi Pl (marina), north MB on ICW, US-17 bypass
+{n:"Grande Dunes",lat:33.7650,lng:-78.8100,area:"Myrtle Beach",areaKey:"myrtle",tags:["golf","gated","ocean","marina"],color:"#6B7B8B",d:"2,200-acre ultra-premium, marina, Ocean Club",lo:259,hi:4400,lot:"mixed"},
+// Myrtle Beach — Dunes Club: 9000 N Ocean Blvd, oceanfront north MB
+{n:"The Dunes Golf & Beach Club",lat:33.7580,lng:-78.7880,area:"Myrtle Beach",areaKey:"myrtle",tags:["golf","ocean"],color:"#6B7B8B",d:"750-member private oceanfront club, RTJ Sr.",lo:800,hi:3000,lot:"estate"},
+// Myrtle Beach — Kingston: 9800 Queensway Blvd, 145-acre oceanfront north end MB
+{n:"Kingston Plantation",lat:33.7670,lng:-78.7780,area:"Myrtle Beach",areaKey:"myrtle",tags:["gated","ocean","resort"],color:"#6B7B8B",d:"145-acre gated oceanfront, Top 10 Luxury",lo:210,hi:1150,lot:"condo"},
+// Myrtle Beach — Arcadian Shores: 701 Hilton Rd, near Grande Dunes
+{n:"Arcadian Shores",lat:33.7520,lng:-78.7960,area:"Myrtle Beach",areaKey:"myrtle",tags:["golf"],color:"#6B7B8B",d:"Rees Jones course near Grande Dunes",lo:245,hi:795,lot:"standard"},
+// Myrtle Beach — Pine Lakes: 5603 Granddaddy Dr, south-central MB
+{n:"Pine Lakes Country Club",lat:33.7150,lng:-78.8580,area:"Myrtle Beach",areaKey:"myrtle",tags:["golf","estate"],color:"#6B7B8B",d:"First Myrtle Beach course (1927), Historic Register",lo:200,hi:1200,lot:"standard"},
+// Carolina Forest — Waterbridge: 684 Waterbridge Blvd, off Hwy 501 in CF
+{n:"Waterbridge",lat:33.6950,lng:-78.9250,area:"Carolina Forest",areaKey:"carolina",tags:["gated","resort"],color:"#6B8B7B",d:"60-acre lake, largest residential pool in SC",lo:400,hi:700,lot:"standard"},
+// Carolina Forest — Bluffs: 1000 River Oaks Dr, on ICW east side of CF
+{n:"The Bluffs on the Waterway",lat:33.7400,lng:-78.8200,area:"Carolina Forest",areaKey:"carolina",tags:["gated","estate","marina"],color:"#6B8B7B",d:"Custom Mediterranean homes on ICW, off River Oaks Dr",lo:850,hi:2000,lot:"estate"},
+// Carolina Forest — Black Creek: off International Dr near River Oaks intersection
+{n:"Black Creek Plantation",lat:33.7450,lng:-78.8500,area:"Carolina Forest",areaKey:"carolina",tags:["gated","estate"],color:"#6B8B7B",d:"1-5+ acre lots, equestrian trails",lo:900,hi:1500,lot:"estate"},
+// Carolina Forest — Brighton Lakes: near Hwy 501 side of CF, next to Covington Lake
+{n:"Brighton Lakes",lat:33.7050,lng:-78.9100,area:"Carolina Forest",areaKey:"carolina",tags:["gated"],color:"#6B8B7B",d:"280+ custom homes, private owner's club",lo:270,hi:559,lot:"standard"},
+// NMB — Tidewater: 2000 Spinnaker Dr, Cherry Grove area, NMB
+{n:"Tidewater Plantation",lat:33.8559,lng:-78.6249,area:"North Myrtle Beach",areaKey:"nmb",tags:["golf","gated","ocean"],color:"#9B7B5B",d:"Top-rated course, 5 pools, oceanfront cabana",lo:300,hi:1300,lot:"mixed"},
+// NMB — Barefoot: 4980 Barefoot Resort Bridge Rd, Windy Hill/NMB on ICW
+{n:"Barefoot Resort & Golf",lat:33.8005,lng:-78.7387,area:"North Myrtle Beach",areaKey:"nmb",tags:["golf","gated","marina","resort"],color:"#9B7B5B",d:"Four championship courses, deep-water marina",lo:204,hi:1150,lot:"mixed"},
+// NMB — Seabrook: off Hwy 17 N, Cherry Grove section
+{n:"Seabrook Plantation",lat:33.8200,lng:-78.6700,area:"North Myrtle Beach",areaKey:"nmb",tags:["gated","ocean"],color:"#9B7B5B",d:"68-acre gated, private oceanfront amenity center",lo:400,hi:1450,lot:"standard"},
+// CF/NMB — Plantation Lakes: on Carolina Forest Blvd
+{n:"Plantation Lakes",lat:33.7650,lng:-78.8050,area:"North Myrtle Beach",areaKey:"nmb",tags:["gated","estate"],color:"#9B7B5B",d:"15 miles of shoreline, custom homes",lo:500,hi:1000,lot:"estate"},
+// Little River — Waterfall: Havasu St, off Robert Edge Pkwy
+{n:"Waterfall",lat:33.8400,lng:-78.6480,area:"Little River",areaKey:"lr",tags:["gated"],color:"#7B8B6B",d:"138 all-brick homes around 8.5-acre lake",lo:300,hi:675,lot:"standard"},
+// Little River — Big Landing: Big Landing Dr, on ICW
+{n:"Big Landing",lat:33.8350,lng:-78.6320,area:"Little River",areaKey:"lr",tags:["gated","marina"],color:"#7B8B6B",d:"Gated on ICW, century-old oaks, fishing pier",lo:300,hi:1000,lot:"standard"},
+// Little River — Crystal Pointe: Landing Rd, on ICW
+{n:"Crystal Pointe",lat:33.8330,lng:-78.6280,area:"Little River",areaKey:"lr",tags:["gated","marina"],color:"#7B8B6B",d:"Exclusive ~20 homes on ICW, private dock",lo:700,hi:1000,lot:"estate"},
+// Little River — Pelican Bay: off Robert Edge Pkwy
+{n:"Pelican Bay",lat:33.8280,lng:-78.6500,area:"Little River",areaKey:"lr",tags:["gated","marina"],color:"#7B8B6B",d:"Half-acre lots, ICW access, boat launch",lo:300,hi:600,lot:"standard"},
+// Little River — Mariners Pointe: Baldwin Ave, on ICW at Little River inlet
+{n:"Mariners Pointe",lat:33.8500,lng:-78.6130,area:"Little River",areaKey:"lr",tags:["marina"],color:"#7B8B6B",d:"Nantucket-style, 116-slip marina on ICW",lo:280,hi:400,lot:"condo"},
 ];
 
 // ── MAP ──
@@ -301,7 +620,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
 function tla(t){return{gated:'Gated',golf:'Golf',ocean:'Oceanfront',estate:'Estate',marina:'Marina',resort:'Resort'}[t]||t}
 function fmt(v){return v>=1000?'$'+(v/1000).toFixed(1)+'M':'$'+v+'K'}
 function tierCls(hi){if(hi>=2000)return'pr-ultra';if(hi>=1000)return'pr-high';if(hi>=500)return'pr-mid';return'pr-entry'}
-function lotLabel(l){return{estate:'Estate Lots',standard:'Standard Lots',mixed:'Mixed',condo:'Condos / Villas'}[l]||l}
+function lotLabel(l){return{estate:'Estate Lots',standard:'Standard',mixed:'Mixed',condo:'Condos'}[l]||l}
 
 function mkIcon(color){
   return L.divIcon({className:'',
@@ -323,7 +642,6 @@ S.forEach((s,i)=>{
   markers.push({marker:m,data:s});
 
   const li=document.createElement('li');
-  li.dataset.idx=i;
   const thtml=s.tags.map(t=>`<span class="t t-${t}">${tla(t)}</span>`).join('');
   li.innerHTML=`<span class="pin" style="background:${s.color}"></span>
     <span class="info"><span class="nm">${s.n}</span>
@@ -331,34 +649,41 @@ S.forEach((s,i)=>{
         <span class="area-label">${s.area}</span>
         <span class="lot-label">${lotLabel(s.lot)}</span></span>
       <span class="tags">${thtml}</span></span>`;
-  li.onclick=()=>{map.flyTo([s.lat,s.lng],15,{duration:.5});sheet.className='peek'};
+  li.onclick=()=>{map.flyTo([s.lat,s.lng],15,{duration:.5});closePanel()};
   cl.appendChild(li);
 });
 
-// ── BOTTOM SHEET DRAG ──
-const sheet=document.getElementById('sheet');
-const handle=document.getElementById('handle');
-let startY,startState;
+// ── MOBILE PANEL OPEN/CLOSE ──
+const panel=document.getElementById('panel');
+const overlay=document.getElementById('overlay');
 
-handle.addEventListener('touchstart',e=>{startY=e.touches[0].clientY;startState=sheet.className},{passive:true});
-handle.addEventListener('touchmove',e=>{e.preventDefault()},{passive:false});
-handle.addEventListener('touchend',e=>{
-  const dy=startY-e.changedTouches[0].clientY;
-  if(dy>40){sheet.className=startState==='peek'?'half':startState==='half'?'full':'full'}
-  else if(dy<-40){sheet.className=startState==='full'?'half':startState==='half'?'peek':'peek'}
-});
-handle.addEventListener('click',()=>{
-  sheet.className=sheet.className==='peek'?'half':sheet.className==='half'?'full':'peek';
-});
+function openPanel(tab){
+  panel.classList.add('on');
+  overlay.classList.add('on');
+  if(tab){
+    document.querySelectorAll('.ptab').forEach(t=>t.classList.toggle('on',t.dataset.t===tab));
+    document.querySelectorAll('.ppane').forEach(p=>p.classList.toggle('on',p.id===tab+'Pane'));
+    document.getElementById('panelTitle').textContent=tab==='filters'?'Filters':'Communities';
+  }
+}
+function closePanel(){
+  panel.classList.remove('on');
+  overlay.classList.remove('on');
+}
 
-// ── TABS ──
-document.querySelectorAll('.tab').forEach(tab=>{
+document.getElementById('bbList').onclick=()=>openPanel('results');
+document.getElementById('bbFilter').onclick=()=>openPanel('filters');
+document.getElementById('bbMap').onclick=closePanel;
+document.getElementById('panelClose').onclick=closePanel;
+overlay.onclick=closePanel;
+
+document.querySelectorAll('.ptab').forEach(tab=>{
   tab.onclick=()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+    document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('on'));
+    document.querySelectorAll('.ppane').forEach(p=>p.classList.remove('on'));
     tab.classList.add('on');
-    document.getElementById(tab.dataset.tab+'Panel').classList.add('on');
-    if(sheet.className==='peek')sheet.className='half';
+    document.getElementById(tab.dataset.t+'Pane').classList.add('on');
+    document.getElementById('panelTitle').textContent=tab.dataset.t==='filters'?'Filters':'Communities';
   };
 });
 
@@ -374,8 +699,8 @@ function updateRange(){
   let lo=+rMin.value,hi=+rMax.value;
   if(lo>hi){[rMin.value,rMax.value]=[hi,lo];lo=+rMin.value;hi=+rMax.value}
   priceMin=lo;priceMax=hi;
-  rvMin.textContent=lo>=1000?'$'+(lo/1000).toFixed(1)+'M':'$'+lo+'K';
-  rvMax.textContent=hi>=5000?'$5M+':hi>=1000?'$'+(hi/1000).toFixed(1)+'M':'$'+hi+'K';
+  rvMin.textContent=fmt(lo);
+  rvMax.textContent=hi>=5000?'$5M+':fmt(hi);
   const pct=v=>(v/5000)*100;
   rangeFill.style.left=pct(lo)+'%';rangeFill.style.width=(pct(hi)-pct(lo))+'%';
   applyFilters();
@@ -403,7 +728,7 @@ buildChips(document.getElementById('locChips'),[
   {k:'georgetown',l:'Georgetown',cls:'c-georgetown'},{k:'pawleys',l:'Pawleys Island',cls:'c-pawleys'},
   {k:'litchfield',l:'Litchfield',cls:'c-litchfield'},{k:'murrells',l:'Murrells Inlet',cls:'c-murrells'},
   {k:'surfside',l:'Surfside',cls:'c-surfside'},{k:'myrtle',l:'Myrtle Beach',cls:'c-myrtle'},
-  {k:'carolina',l:'Carolina Forest',cls:'c-carolina'},{k:'nmb',l:'North Myrtle Beach',cls:'c-nmb'},
+  {k:'carolina',l:'Carolina Forest',cls:'c-carolina'},{k:'nmb',l:'N. Myrtle Beach',cls:'c-nmb'},
   {k:'lr',l:'Little River',cls:'c-lr'},
 ],activeLocs,'locReset');
 
@@ -428,8 +753,7 @@ document.getElementById('clearAll').onclick=()=>{
 function applyFilters(){
   let vis=0;
   markers.forEach(({marker,data},i)=>{
-    const ok=
-      (data.hi>=priceMin&&data.lo<=priceMax)&&
+    const ok=(data.hi>=priceMin&&data.lo<=priceMax)&&
       (activeLocs.size===0||activeLocs.has(data.areaKey))&&
       (activeAmens.size===0||data.tags.some(t=>activeAmens.has(t)))&&
       (activeLots.size===0||activeLots.has(data.lot));
@@ -437,11 +761,345 @@ function applyFilters(){
     cl.children[i].style.display=ok?'':'none';
   });
   document.getElementById('cnt').innerHTML=`Showing <b>${vis}</b> of ${S.length} communities`;
-  document.getElementById('peekLabel').textContent=`${vis} Communities · Swipe Up to Filter`;
+  document.getElementById('bbCount').textContent=vis;
 }
 applyFilters();
 
 L.control.scale({imperial:true,metric:false}).addTo(map);
+
+// ── AREA MAPPING ──
+const AREA_MAP={
+  'Georgetown':{key:'georgetown',color:'#8B7355'},
+  'Pawleys Island':{key:'pawleys',color:'#C9865B'},
+  'Litchfield Beach':{key:'litchfield',color:'#5E8B8B'},
+  'Murrells Inlet':{key:'murrells',color:'#8B6B8B'},
+  'Surfside Beach':{key:'surfside',color:'#7B9B6B'},
+  'Myrtle Beach':{key:'myrtle',color:'#6B7B8B'},
+  'Carolina Forest':{key:'carolina',color:'#6B8B7B'},
+  'North Myrtle Beach':{key:'nmb',color:'#9B7B5B'},
+  'Little River':{key:'lr',color:'#7B8B6B'}
+};
+
+// ── FIREBASE INIT ──
+const firebaseConfig={
+  apiKey:"AIzaSyC1mX0znMtTvREmL2YEcDUphXuHBBDtQvE",
+  authDomain:"cbsca-blog.firebaseapp.com",
+  projectId:"cbsca-blog",
+  storageBucket:"cbsca-blog.firebasestorage.app",
+  messagingSenderId:"432902375657",
+  appId:"1:432902375657:web:bbf4bb4c9d8be0367a4878"
+};
+
+let currentUser=null;
+let firebaseReady=false;
+let communities=[];
+
+function initFirebase(){
+  firebase.initializeApp(firebaseConfig);
+  firebaseReady=true;
+  firebase.auth().onAuthStateChanged(user=>{
+    currentUser=user;
+    updateAdminUI();
+  });
+}
+
+// ── ADMIN UI FUNCTIONS ──
+function openAdminLogin(){
+  document.getElementById('adminLoginOverlay').classList.add('on');
+}
+function closeAdminLogin(){
+  document.getElementById('adminLoginOverlay').classList.remove('on');
+  document.getElementById('adminEmail').value='';
+  document.getElementById('adminPassword').value='';
+  document.getElementById('adminLoginErr').classList.remove('on');
+}
+function openAdminDashboard(){
+  document.getElementById('adminDashboard').classList.add('on');
+  loadCommunitiesFromFirestore();
+}
+function closeAdminDashboard(){
+  document.getElementById('adminDashboard').classList.remove('on');
+  closeForm();
+}
+function openForm(community=null){
+  const isEdit=!!community;
+  document.getElementById('formTitle').textContent=isEdit?'Edit Community':'Add Community';
+  document.getElementById('communityForm').dataset.id=community?.id||'';
+
+  if(isEdit){
+    document.getElementById('formName').value=community.n||'';
+    document.getElementById('formLat').value=community.lat||'';
+    document.getElementById('formLng').value=community.lng||'';
+    document.getElementById('formArea').value=community.area||'';
+    updateAreaFields();
+    document.getElementById('formDescription').value=community.d||'';
+    document.getElementById('formPriceLo').value=community.lo||'';
+    document.getElementById('formPriceHi').value=community.hi||'';
+    document.getElementById('formLot').value=community.lot||'';
+    document.getElementById('formOrder').value=community.order||0;
+    document.querySelectorAll('input[name="tags"]').forEach(cb=>{
+      cb.checked=(community.tags||[]).includes(cb.value);
+    });
+  }else{
+    document.getElementById('communityForm').reset();
+    document.getElementById('formArea').value='';
+    document.getElementById('formAreaKey').value='';
+    document.getElementById('formColor').value='';
+    document.getElementById('formOrder').value=0;
+  }
+  document.getElementById('adminFormOverlay').classList.add('on');
+}
+function closeForm(){
+  document.getElementById('adminFormOverlay').classList.remove('on');
+}
+
+function updateAreaFields(){
+  const area=document.getElementById('formArea').value;
+  const am=AREA_MAP[area];
+  document.getElementById('formAreaKey').value=am?.key||'';
+  document.getElementById('formColor').value=am?.color||'';
+}
+
+function updateAdminUI(){
+  // Only close dashboard if user logs out — don't force overlays on page load
+  if(!currentUser){
+    document.getElementById('adminDashboard').classList.remove('on');
+  }
+}
+
+async function doAdminLogin(){
+  const email=document.getElementById('adminEmail').value.trim();
+  const password=document.getElementById('adminPassword').value;
+  const errEl=document.getElementById('adminLoginErr');
+
+  if(!email||!password){
+    errEl.textContent='Email and password required';
+    errEl.classList.add('on');
+    return;
+  }
+
+  try{
+    await firebase.auth().signInWithEmailAndPassword(email,password);
+    errEl.classList.remove('on');
+    openAdminDashboard();
+  }catch(err){
+    errEl.textContent=err.message||'Login failed';
+    errEl.classList.add('on');
+  }
+}
+
+async function doAdminLogout(){
+  try{
+    await firebase.auth().signOut();
+    closeAdminDashboard();
+  }catch(err){
+    console.error('Logout error:',err);
+  }
+}
+
+async function loadCommunitiesFromFirestore(){
+  if(!firebaseReady||!currentUser)return;
+
+  try{
+    const snap=await firebase.firestore().collection('map_communities').orderBy('order','asc').get();
+    if(snap.empty){
+      document.getElementById('seedContainer').style.display='block';
+      communities=[];
+    }else{
+      document.getElementById('seedContainer').style.display='none';
+      communities=snap.docs.map(d=>({id:d.id,...d.data()}));
+    }
+    renderAdminList();
+  }catch(err){
+    console.error('Load error:',err);
+    document.getElementById('seedContainer').style.display='none';
+    communities=[];
+    renderAdminList();
+  }
+}
+
+async function seedFromDefaults(){
+  if(!firebaseReady||!currentUser)return;
+
+  try{
+    const batch=firebase.firestore().batch();
+    const col=firebase.firestore().collection('map_communities');
+
+    S.forEach((item,idx)=>{
+      const doc=col.doc();
+      batch.set(doc,{
+        n:item.n,lat:item.lat,lng:item.lng,area:item.area,areaKey:item.areaKey,
+        tags:item.tags,color:item.color,d:item.d,lo:item.lo,hi:item.hi,lot:item.lot,
+        order:idx
+      });
+    });
+
+    await batch.commit();
+    await loadCommunitiesFromFirestore();
+    alert('Seeded 40 communities!');
+  }catch(err){
+    console.error('Seed error:',err);
+    alert('Failed to seed communities');
+  }
+}
+
+function renderAdminList(){
+  const list=document.getElementById('adminList');
+  list.innerHTML='';
+
+  communities.forEach(c=>{
+    const li=document.createElement('li');
+    li.className='admin-row';
+    const tagsHtml=c.tags.map(t=>`<span class="t t-${t}" style="font-size:8px;padding:2px 5px">${tla(t)}</span>`).join('');
+    li.innerHTML=`
+      <div class="left">
+        <div class="title">${c.n}</div>
+        <div class="meta">${c.area} • ${fmt(c.lo)}–${fmt(c.hi)} • ${lotLabel(c.lot)}</div>
+        <div class="meta" style="margin-top:4px">${tagsHtml}</div>
+      </div>
+      <div class="actions">
+        <button class="btn-edit" onclick="editCommunity('${c.id}')">Edit</button>
+        <button class="btn-delete" onclick="deleteCommunity('${c.id}','${c.n}')">Delete</button>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+}
+
+async function editCommunity(id){
+  const c=communities.find(x=>x.id===id);
+  if(c)openForm(c);
+}
+
+async function deleteCommunity(id,name){
+  if(!confirm(`Delete "${name}"?`))return;
+
+  try{
+    await firebase.firestore().collection('map_communities').doc(id).delete();
+    await loadCommunitiesFromFirestore();
+    refreshMapData();
+  }catch(err){
+    console.error('Delete error:',err);
+    alert('Failed to delete');
+  }
+}
+
+async function saveCommunity(e){
+  e.preventDefault();
+
+  const isEdit=!!document.getElementById('communityForm').dataset.id;
+  const tags=Array.from(document.querySelectorAll('input[name="tags"]:checked')).map(cb=>cb.value);
+
+  const data={
+    n:document.getElementById('formName').value,
+    lat:parseFloat(document.getElementById('formLat').value),
+    lng:parseFloat(document.getElementById('formLng').value),
+    area:document.getElementById('formArea').value,
+    areaKey:document.getElementById('formAreaKey').value,
+    color:document.getElementById('formColor').value,
+    tags:tags,
+    d:document.getElementById('formDescription').value,
+    lo:parseInt(document.getElementById('formPriceLo').value)||0,
+    hi:parseInt(document.getElementById('formPriceHi').value)||0,
+    lot:document.getElementById('formLot').value,
+    order:parseInt(document.getElementById('formOrder').value)||0
+  };
+
+  try{
+    if(isEdit){
+      const id=document.getElementById('communityForm').dataset.id;
+      await firebase.firestore().collection('map_communities').doc(id).update(data);
+    }else{
+      await firebase.firestore().collection('map_communities').add(data);
+    }
+    closeForm();
+    await loadCommunitiesFromFirestore();
+    refreshMapData();
+  }catch(err){
+    console.error('Save error:',err);
+    alert('Failed to save: '+err.message);
+  }
+}
+
+async function refreshMapData(){
+  try{
+    const snap=await firebase.firestore().collection('map_communities').orderBy('order','asc').get();
+    const data=snap.docs.map(d=>({id:d.id,...d.data()}));
+
+    if(data.length>0){
+      S.length=0;
+      S.push(...data);
+
+      markers.forEach(m=>m.marker.remove());
+      markers.length=0;
+      cl.innerHTML='';
+
+      S.forEach((s,i)=>{
+        const m=L.marker([s.lat,s.lng],{icon:mkIcon(s.color)}).addTo(map);
+        const th=s.tags.map(t=>`<span class="t t-${t}">${tla(t)}</span>`).join('');
+        m.bindPopup(`<div class="pn">${s.n}</div><div class="pa" style="color:${s.color}">${s.area}</div>
+          <div class="pp ${tierCls(s.hi)}">${fmt(s.lo)} – ${fmt(s.hi)}</div>
+          <div class="plx">${lotLabel(s.lot)}</div>
+          <div class="pd">${s.d}</div><div class="pt">${th}</div>`,{closeButton:false,maxWidth:260});
+        m.on('click',function(){map.flyTo([s.lat,s.lng],14,{duration:.5})});
+        markers.push({marker:m,data:s});
+
+        const li=document.createElement('li');
+        const thtml=s.tags.map(t=>`<span class="t t-${t}">${tla(t)}</span>`).join('');
+        li.innerHTML=`<span class="pin" style="background:${s.color}"></span>
+          <span class="info"><span class="nm">${s.n}</span>
+            <span class="row2"><span class="price ${tierCls(s.hi)}">${fmt(s.lo)}–${fmt(s.hi)}</span>
+              <span class="area-label">${s.area}</span>
+              <span class="lot-label">${lotLabel(s.lot)}</span></span>
+            <span class="tags">${thtml}</span></span>`;
+        li.onclick=()=>{map.flyTo([s.lat,s.lng],15,{duration:.5});closePanel()};
+        cl.appendChild(li);
+      });
+
+      applyFilters();
+    }
+  }catch(err){
+    console.error('Refresh error:',err);
+  }
+}
+
+// ── EVENT LISTENERS ──
+document.getElementById('adminBtn').onclick=()=>{
+  if(currentUser){
+    openAdminDashboard();
+  }else{
+    openAdminLogin();
+  }
+};
+
+document.getElementById('adminLoginBtn').onclick=doAdminLogin;
+document.getElementById('adminEmail').onkeypress=function(e){if(e.key==='Enter')doAdminLogin()};
+document.getElementById('adminPassword').onkeypress=function(e){if(e.key==='Enter')doAdminLogin()};
+
+document.getElementById('adminLogoutBtn').onclick=doAdminLogout;
+document.getElementById('adminDashClose').onclick=closeAdminDashboard;
+document.getElementById('adminAddBtn').onclick=()=>openForm();
+document.getElementById('seedBtn').onclick=seedFromDefaults;
+document.getElementById('communityForm').onsubmit=saveCommunity;
+
+document.getElementById('adminFormOverlay').onclick=function(e){
+  if(e.target===this)closeForm();
+};
+
+document.getElementById('adminLoginOverlay').onclick=function(e){
+  if(e.target===this)closeAdminLogin();
+};
+
+// Firebase SDK loaded below — init after scripts load
+</script>
+
+<!-- Firebase SDK — must load BEFORE init -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+// Initialize Firebase AFTER SDK loads
+initFirebase();
 </script>
 </body>
 </html>
